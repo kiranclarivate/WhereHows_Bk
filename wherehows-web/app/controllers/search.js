@@ -2,7 +2,7 @@ import Ember from 'ember';
 
 const { Controller, computed, get, set, String: { capitalize } } = Ember;
 
-const sources = ['all', 'dali', 'espresso', 'hive', 'hdfs', 'kafka', 'oracle', 'teradata', 'voldemort'];
+const sources = ['all', 'dali', 'espresso', 'hive', 'hdfs', 'kafka', 'oracle', 'teradata', 'voldemort','greenplum','s3'];
 
 export default Controller.extend({
   queryParams: ['keyword', 'category', 'source', 'page'],

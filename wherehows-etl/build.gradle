@@ -24,7 +24,7 @@ dependencies {
   compile externalDependency.jython
   compile externalDependency.mysql
   compile externalDependency.htrace
-  compile fileTree(dir: 'extralibs', include: ['*.jar']) // externalDependency.oracle/teradata/gsp
+  compile fileTree(dir: 'extralibs', include: ['*.jar']) // externalDependency.oracle/teradata/gsp/postgresql
   provided project(":wherehows-hadoop")
   testCompile externalDependency.testng
 }

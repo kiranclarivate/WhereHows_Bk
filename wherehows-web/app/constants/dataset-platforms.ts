@@ -8,7 +8,9 @@ enum DatasetPlatform {
   Oracle = 'ORACLE',
   MySql = 'MYSQL',
   Teradata = 'TERADATA',
-  HDFS = 'HDFS'
+  HDFS = 'HDFS',
+  GreenPlum = 'GREENPLUM',
+  S3 = 'S3'
 }
 
 export { DatasetPlatform };

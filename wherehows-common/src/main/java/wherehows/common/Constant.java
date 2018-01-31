@@ -243,6 +243,18 @@ public class Constant {
   public static final String ORA_SAMPLE_OUTPUT_KEY = "oracle.sample_data";
   public static final String ORA_LOAD_SAMPLE = "oracle.load_sample";
   public static final String ORA_EXCLUDE_DATABASES_KEY = "oracle.exclude_db";
+  
+  // GreenPlum
+  public static final String GP_DB_USERNAME_KEY = "greenplum.db.username";
+  public static final String GP_DB_PASSWORD_KEY = "greenplum.db.password";
+  public static final String GP_DB_DRIVER_KEY = "greenplum.db.driver";
+  public static final String GP_DB_URL_KEY = "greenplum.db.jdbc.url";
+  public static final String GP_SCHEMA_OUTPUT_KEY = "greenplum.metadata";
+  public static final String GP_FIELD_OUTPUT_KEY = "greenplum.field_metadata";
+  public static final String GP_SAMPLE_OUTPUT_KEY = "greenplum.sample_data";
+  public static final String GP_LOAD_SAMPLE = "greenplum.load_sample";
+  public static final String GP_EXCLUDE_DATABASES_KEY = "greenplum.exclude_db";
+  public static final String GP_INCLUDE_SCHEMAS_KEY = "greenplum.include_schema";
 
   // Multiproduct
   public static final String MULTIPRODUCT_SERVICE_URL = "multiproduct.service.url";

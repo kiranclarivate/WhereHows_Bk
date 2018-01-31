@@ -33,7 +33,7 @@ CREATE TABLE `stg_dict_dataset` (
   `is_active`                   BOOLEAN NULL COMMENT 'is the dataset active / exist ?',
   `is_deprecated`               BOOLEAN NULL COMMENT 'is the dataset deprecated by user ?',
   `dataset_type`                VARCHAR(30) NULL
-  COMMENT 'hdfs, hive, kafka, teradata, mysql, sqlserver, file, nfs, pinot, salesforce, oracle, db2, netezza, cassandra, hbase, qfs, zfs',
+  COMMENT 'hdfs, hive, kafka, teradata, mysql, sqlserver, file, nfs, pinot, salesforce, oracle, db2, netezza, cassandra, hbase, qfs, zfs,greenplum',
   `hive_serdes_class`           VARCHAR(300)                                                                                NULL,
   `is_partitioned`              CHAR(1)                                                                                     NULL,
   `partition_layout_pattern_id` SMALLINT(6)                                                                                 NULL,
@@ -73,7 +73,7 @@ CREATE TABLE `dict_dataset` (
   `is_active`                   BOOLEAN NULL COMMENT 'is the dataset active / exist ?',
   `is_deprecated`               BOOLEAN NULL COMMENT 'is the dataset deprecated by user ?',
   `dataset_type`                VARCHAR(30)                                                                                 NULL
-  COMMENT 'hdfs, hive, kafka, teradata, mysql, sqlserver, file, nfs, pinot, salesforce, oracle, db2, netezza, cassandra, hbase, qfs, zfs',
+  COMMENT 'hdfs, hive, kafka, teradata, mysql, sqlserver, file, nfs, pinot, salesforce, oracle, db2, netezza, cassandra, hbase, qfs, zfs,greenplum',
   `hive_serdes_class`           VARCHAR(300)                                                                                NULL,
   `is_partitioned`              CHAR(1)                                                                                     NULL,
   `partition_layout_pattern_id` SMALLINT(6)                                                                                 NULL,

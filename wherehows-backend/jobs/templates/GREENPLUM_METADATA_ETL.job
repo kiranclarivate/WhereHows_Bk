@@ -1,0 +1,47 @@
+# Fetch GreenPlum dataset metadata
+
+# Common ETL configs
+job.class=metadata.etl.JythonEtlJob
+job.cron.expr=0 0/5 * * * ?
+job.timeout=600
+#job.cmd.params=
+#job.disabled=1
+job.ref.id=82
+
+# Jython scripts
+job.jython.extract=jython/GreenPlumExtract.py
+job.jython.load=jython/GreenPlumLoad.py
+
+# GreenPlum JDBC driver
+greenplum.db.driver=org.postgresql.Driver
+
+# GreenPlum DB name
+greenplum.db.name=ccdb
+
+# GreenPlum username
+greenplum.db.username=ip_read_only
+
+# GreenPlum password
+greenplum.db.password=ip_read_only
+
+# GreenPlum JDBC URL
+greenplum.db.jdbc.url=jdbc:postgresql://staging-dev-gp.dev.cc.oneplatform.build:5432/ccdb?
+
+# Place to store datasets metadata csv file
+greenplum.metadata=greenplum.csv
+
+# Place to store dataset fields csv file
+greenplum.field_metadata=greenplum_field.csv
+
+# Place to store the sample data csv file
+greenplum.sample_data=greenplum_sample.csv
+
+# Whether to get sample data (True/False)
+greenplum.load_sample=False
+
+# List of excluded databases in greenplum
+greenplum.exclude_db=gp
+greenplum.include_schema=bioworld|chem|chem_alt|ci_public|ddf|ipd|jpharm_approved|ls_ontologies|ls_system_biology|ls_targets|mdd|newport_approved|prous_approved|prous_approved_alt|ri_analytics|ri_document|ri_global_module|si_public|tr_broker_research|tr_ean|tr_event_transcripts|tr_ibes|tr_org_auth|tr_private_equity|trial_sites_investigators|tsps|nih|feh
+
+# innodb_lock_wait_timeout when accessing MySQL Db
+innodb_lock_wait_timeout=1500
