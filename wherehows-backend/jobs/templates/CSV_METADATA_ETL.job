@@ -1,0 +1,36 @@
+# Fetch excel dataset metadata
+
+# Common ETL configs
+job.class=metadata.etl.JythonEtlJob
+job.cron.expr=0 0/5 * * * ?
+job.timeout=600
+#job.cmd.params=
+#job.disabled=1
+job.ref.id=103
+
+# Jython scripts
+
+job.jython.extract=jython/CSVExtract.py
+job.jython.transform=jython/CSVLoad.py
+job.jython.load=jython/SchedulerLoad.py
+
+
+
+
+# Place where csv file is stored
+csv.flow=flow.csv
+csv.job=job.csv
+csv.dag=dag.csv
+csv.owner=owner.csv
+csv.schedule=schedule.csv
+csv.flow_exec=flow_exec.csv
+csv.job_exec=job_exec.csv
+csv.input=/dev/job/CSV_METADATA_ETL/DF_plus_core_metadata.csv
+csv.lineage=lineage.csv
+csv.dataset=dataset.csv
+
+
+
+
+# innodb_lock_wait_timeout when accessing MySQL Db
+innodb_lock_wait_timeout=1500
