@@ -295,5 +295,32 @@ public class Constant {
   public static final String ELASTICSEARCH_URL_REQUEST_TIMEOUT = "elasticsearch.url.request.timeout";
   public static final String WH_DB_MAX_RETRY_TIMES = "wh.db.max.retry.times";
   public static final String WH_ELASTICSEARCH_INDEX_MAPPING_FILE = "wh.elasticsearch.index.mapping.file";
+  
+  // DB2
+  public static final String DB2_DB_USERNAME_KEY = "db2.db.username";
+  public static final String DB2_DB_PASSWORD_KEY = "db2.db.password";
+  public static final String DB2_DB_DRIVER_KEY = "db2.db.driver";
+  public static final String DB2_DB_URL_KEY = "db2.db.jdbc.url";
+  public static final String DB2_SCHEMA_OUTPUT_KEY = "db2.metadata";
+  public static final String DB2_FIELD_OUTPUT_KEY = "db2.field_metadata";
+  public static final String DB2_SAMPLE_OUTPUT_KEY = "db2.sample_data";
+  public static final String DB2_LOAD_SAMPLE = "db2.load_sample";
+  public static final String DB2_EXCLUDE_DATABASES_KEY = "db2.exclude_db";
+  public static final String DB2_INCLUDE_SCHEMAS_KEY = "db2.include_schema";
+  
+  //CSV
+  public static final String CSV_FLOW = "csv.flow";
+  public static final String CSV_JOB = "csv.job";
+  public static final String CSV_DAG = "csv.dag";
+  public static final String CSV_OWNER = "csv.owner";
+  public static final String CSV_SCHEDULE = "csv.schedule";
+  public static final String CSV_FLOW_EXEC = "csv.flow_exec";
+  public static final String CSV_JOB_EXEC = "csv.job_exec";
+  public static final String CSV_INPUT = "csv.input";
+  public static final String CSV_LINEAGE = "csv.lineage";
+  public static final String CSV_DATASET = "csv.dataset";
+  public static final String DB_ID = "dataset.db_id";
+ 
+  
 
 }
