@@ -103,6 +103,7 @@ CREATE TABLE flow_job (
   created_time         INT UNSIGNED COMMENT 'wherehows created time of the flow',
   modified_time        INT UNSIGNED COMMENT 'latest wherehows modified time of the flow',
   wh_etl_exec_id       BIGINT COMMENT 'wherehows etl execution id that create this record',
+  AdditionalInfo       VARCHAR(255) COMMENT 'additional info',
   PRIMARY KEY (app_id, job_id, dag_version),
   INDEX flow_id_idx (app_id, flow_id),
   INDEX ref_flow_id_idx (app_id, ref_flow_id),
