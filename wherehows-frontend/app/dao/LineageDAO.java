@@ -205,8 +205,12 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 
 	public static JsonNode getObjectAdjacnet(String urn, int upLevel, int downLevel, int lookBackTime)
 	{
+		System.out.println("getObjectAdjacnet::");
 		int level = 0;
 		LineagePathInfo pathInfo = utils.Lineage.convertFromURN(urn);
+		System.out.println("pathInfo:: "  + pathInfo.filePath);
+		System.out.println("pathInfo:: "  + pathInfo.schemaName);
+		System.out.println("pathInfo:: "  + pathInfo.storageType);
 		List<LineageNode> nodes = new ArrayList<LineageNode>();
 		List<LineageEdge> edges = new ArrayList<LineageEdge>();
 		Map<Long, List<LineageNode>> addedSourceNodes= new HashMap<Long, List<LineageNode>>();
@@ -251,6 +255,8 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 			List<LineageEdge> edges,
 			boolean isUpLevel)
 	{
+		
+		System.out.println("comes in addSourceNode");
 		List<LineageNode> sourceNodes = addedSourceNodes.get(jobNode.exec_id);
 		if (sourceNodes != null)
 		{
@@ -318,6 +324,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 			List<LineageEdge> edges,
 			boolean isUpLevel)
 	{
+		System.out.println("comes in addTargetNode");
 		List<LineageNode> targetNodes = addedTargetNodes.get(jobNode.exec_id);
 		if (targetNodes != null)
 		{
@@ -393,6 +400,11 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 									   List<LineageNode> nodes,
 									   List<LineageEdge> edges)
 	{
+		
+		System.out.println("comes here renderGraph");
+		System.out.println("urn:: "  + urn);
+		System.out.println("allSourceNodes:: "  + allSourceNodes.size());
+		System.out.println("allTargetNodes:: "  + allTargetNodes.size());
 		ObjectNode resultNode = Json.newObject();
 		String message = null;
 		Map<String, LineageNode> addedSourceDataNodes = new HashMap<String, LineageNode>();
@@ -402,6 +414,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 		message = "No lineage information found for this dataset";
 		if (allSourceNodes.size() == 0 && allTargetNodes.size() == 0)
 		{
+			System.out.println("message:: "  + message);
 			LineageNode node = new LineageNode();
 			node.id = nodes.size();
 			node._sort_list = new ArrayList<String>();
@@ -417,8 +430,11 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 		else
 		{
 			message = "Found lineage information";
+			
 			for(int i = 0; i < Math.max(upLevel, downLevel); i++)
 			{
+				System.out.println("message:: "  + message);
+				System.out.println(upLevel +","+downLevel);
 				if (i < upLevel)
 				{
 					if (toBeConvertedSourceDataNodes.size() > 0)
@@ -512,6 +528,8 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 
 	public static List<String> getLiasDatasetNames(String abstractedObjectName)
 	{
+		
+		System.out.println("coe sin getLiasDatasetNames");
 		if (StringUtils.isBlank(abstractedObjectName))
 			return null;
 		List<String> totalNames = new ArrayList<String>();
@@ -554,17 +572,24 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 
 	public static ScriptInfo getScriptInfo(int appId, Long jobId)
 	{
+		
+		System.out.println("coes in getScriptInfo");
+		System.out.println("GET_SCRIPT_INFO_BY_JOB_ID::"  + GET_SCRIPT_INFO_BY_JOB_ID);
+		System.out.println("appId::"  + appId);
+		System.out.println("jobId::"  + jobId);
 		List<Map<String, Object>> rows = null;
 		ScriptInfo scriptInfo = new ScriptInfo();
 		rows = getJdbcTemplate().queryForList(GET_SCRIPT_INFO_BY_JOB_ID, appId, jobId);
 		if (rows != null)
 		{
+			
 			for (Map row : rows)
 			{
 				scriptInfo.gitPath = (String)row.get("script_url");
 				scriptInfo.scriptName = (String)row.get("script_name");
 				scriptInfo.scriptPath = (String)row.get("script_path");
 				scriptInfo.scriptType = (String)row.get("script_type");
+				System.out.println(scriptInfo.gitPath+","+scriptInfo.scriptName+","+scriptInfo.scriptPath+","+scriptInfo.scriptType);
 				break;
 			}
 		}
@@ -584,6 +609,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 			Map<Long, LineageNode> addedJobNodes,
 			int lookBackTime)
 	{
+		System.out.println("comes in getNodes");
 		if (upLevel < 1 && downLevel < 1)
 		{
 			return;
@@ -614,17 +640,19 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new
 				NamedParameterJdbcTemplate(getJdbcTemplate().getDataSource());
 		parameters.addValue("days", lookBackTime);
-
+		System.out.println("names:: "  + nameList);
+		System.out.println("days:: "  + lookBackTime);
 		if (currentNode != null)
 		{
 			if (currentNode.source_target_type.equalsIgnoreCase("source"))
-			{
+			{System.out.println("GET_UP_LEVEL_JOB:: "  + GET_UP_LEVEL_JOB);
 				rows = namedParameterJdbcTemplate.queryForList(
 						GET_UP_LEVEL_JOB,
 						parameters);
 			}
 			else
 			{
+				System.out.println("GET_JOB_WITH_SOURCE:: "  +GET_JOB_WITH_SOURCE);
 				parameters.addValue("type", currentNode.source_target_type);
 				rows = namedParameterJdbcTemplate.queryForList(
 						GET_JOB_WITH_SOURCE,
@@ -634,6 +662,8 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 		}
 		else
 		{
+			System.out.println("GET_JOB11:: "  + GET_JOB);
+			
 			rows = namedParameterJdbcTemplate.queryForList(
 					GET_JOB,
 					parameters);
@@ -647,6 +677,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 					continue;
 				}
 				Long jobExecId = ((BigInteger) jobExecIdObject).longValue();
+				System.out.println("jobExecId::"  + jobExecId);
 				if (addedJobNodes.get(jobExecId) != null) {
 					continue;
 				}
@@ -687,6 +718,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 
 				if (node.source_target_type.equalsIgnoreCase("source") && node.operation.equalsIgnoreCase("JDBC Read"))
 				{
+					System.out.println("coesin fff");
 					MapSqlParameterSource lassenParams = new MapSqlParameterSource();
 					lassenParams.addValue("names", nameList);
 					lassenParams.addValue("appid", applicationID);
@@ -697,6 +729,8 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 				}
 				else
 				{
+					System.out.println("coesin else");
+					System.out.println("GET_DATA::"  + GET_DATA +"," +applicationID+","+jobId);
 					relatedDataRows = getJdbcTemplate().queryForList(
 							GET_DATA,
 							applicationID,
@@ -834,6 +868,8 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 			Map<Long, LineageNode> addedJobNodes,
 			int lookBackTime)
 	{
+		
+		System.out.println("comes in getObjectAdjacentNode");
 		if (upLevel < 1 && downLevel < 1)
 		{
 			return;
@@ -859,6 +895,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 
 	public static ObjectNode getFlowLineage(String application, String project, Long flowId)
 	{
+		System.out.println("comes in getFlowLineage");
 		ObjectNode resultNode = Json.newObject();
 		List<LineageNode> nodes = new ArrayList<LineageNode>();
 		List<LineageEdge> edges = new ArrayList<LineageEdge>();
@@ -883,6 +920,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 					GET_APP_ID,
 					new Object[] {applicationName},
 					Integer.class);
+			System.out.println("appID:: "  + appID);
 		}
 		catch(EmptyResultDataAccessException e)
 		{
@@ -901,6 +939,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 						GET_FLOW_NAME,
 						new Object[] {appID, flowId},
 						String.class);
+				System.out.println("flowName::"  + flowName);
 			}
 			catch(EmptyResultDataAccessException e)
 			{
@@ -916,6 +955,8 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 						GET_LATEST_FLOW_EXEC_ID,
 						new Object[] {appID, flowId},
 						Long.class);
+				
+				System.out.println("flowExecId:: "  + flowExecId);
 			}
 			catch(EmptyResultDataAccessException e)
 			{
@@ -924,6 +965,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 				Logger.error("Exception = " + e.getMessage());
 			}
 			List<Map<String, Object>> rows = null;
+			System.out.println("GET_FLOW_DATA_LINEAGE:: "  + GET_FLOW_DATA_LINEAGE);
 			rows = getJdbcTemplate().queryForList(
 					GET_FLOW_DATA_LINEAGE,
 					appID,
@@ -977,6 +1019,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 
 			List<LineageNode> jobNodes = new ArrayList<LineageNode>();
 			List<Map<String, Object>> jobRows = null;
+			System.out.println("GET_FLOW_JOB:: "  + GET_FLOW_JOB + "appID:: "  + appID + "flowExecId:: "  +flowExecId );
 			jobRows = getJdbcTemplate().queryForList(
 					GET_FLOW_JOB,
 					appID,
@@ -986,10 +1029,14 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 			int edgeIndex = 0;
 			Map<Long, LineageNode> jobNodeMap = new HashMap<Long, LineageNode>();
 			List<Pair> addedEdges = new ArrayList<Pair>();
+			
+			
 			if (rows != null)
 			{
 				for (Map row : jobRows) {
+					System.out.println("Inside Row");
 					Long jobExecId = ((BigInteger)row.get("job_exec_id")).longValue();
+					System.out.println("jobExecId:: "  + jobExecId);
 					LineageNode node = new LineageNode();
 					node._sort_list = new ArrayList<String>();
 					node.node_type = "script";
@@ -1019,6 +1066,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 					node._sort_list.add("script_path");
 					node._sort_list.add("script_type");
 					Integer id = addedJobNodes.get(jobExecId);
+					System.out.println("id:: "  + id);
 					if (id == null)
 					{
 						node.id = index++;
@@ -1035,6 +1083,8 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 					String sourceType = (String)row.get("source_target_type");
 					if (sourceType.equalsIgnoreCase("target"))
 					{
+						System.out.println("sourceType:: "  + sourceType);
+						
 						List<LineageNode> sourceNodeList = nodeHash.get(jobExecId);
 						if (sourceNodeList != null && sourceNodeList.size() > 0)
 						{
@@ -1262,6 +1312,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 				}
 			}
 		}
+		System.out.println("Nodes:: "  + nodes.size());
 		resultNode.set("nodes", Json.toJson(nodes));
 		resultNode.set("links", Json.toJson(edges));
 		resultNode.put("flowName", flowName);
@@ -1273,6 +1324,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 			int level,
 			List<ImpactDataset> impactDatasets)
 	{
+		System.out.println("comes in getImpactDatasets");
 		if (searchUrnList != null && searchUrnList.size() > 0) {
 
 			if (impactDatasets == null)
@@ -1297,13 +1349,17 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 
 			if (pathList != null && pathList.size() > 0)
 			{
+				System.out.println("pathList:: "  + pathList);
 				Map<String, List> param = Collections.singletonMap("pathlist", pathList);
 				NamedParameterJdbcTemplate namedParameterJdbcTemplate = new
 						NamedParameterJdbcTemplate(getJdbcTemplate().getDataSource());
+				System.out.println("GET_ONE_LEVEL_IMPACT_DATABASES:: "  + GET_ONE_LEVEL_IMPACT_DATABASES);
 				List<ImpactDataset> impactDatasetList = namedParameterJdbcTemplate.query(
 						GET_ONE_LEVEL_IMPACT_DATABASES,
 						param,
 						new ImpactDatasetRowMapper());
+				
+				System.out.println("impactDatasetList:: "  + impactDatasetList);
 
 				if (impactDatasetList != null) {
 					for (ImpactDataset dataset : impactDatasetList) {
@@ -1327,6 +1383,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 
 	public static List<ImpactDataset> getImpactDatasetsByUrn(String urn)
 	{
+		System.out.println("comes in getImpactDatasetsByUrn");
 		List<ImpactDataset> impactDatasetList = new ArrayList<ImpactDataset>();
 
 		if (StringUtils.isNotBlank(urn))
@@ -1338,5 +1395,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO
 
 		return impactDatasetList;
 	}
+
+
 
 }
