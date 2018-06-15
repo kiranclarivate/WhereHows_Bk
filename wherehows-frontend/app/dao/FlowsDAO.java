@@ -512,6 +512,8 @@ public class FlowsDAO extends AbstractMySQLOpenSourceDAO {
           resultNode.put("itemsPerPage", size);
           resultNode.put("totalPages", (int) Math.ceil(count / ((double) size)));
           resultNode.set("jobs", Json.toJson(pagedJobs));
+          resultNode.put("id", azkabanFlowId);
+          resultNode.put("application", application);
           return resultNode;
         }
       });
