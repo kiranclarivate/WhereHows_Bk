@@ -102,6 +102,8 @@ class CSVExtract:
                             quoting=csv.QUOTE_NONE, quotechar='\1', escapechar='\\')
           #writer.writeheader()
           rowDict = {}
+          number = 0
+          flowDict = {}
         
           jsonDict = {}
           for row in csvreader:
@@ -110,6 +112,13 @@ class CSVExtract:
             rowDict["app_id"] = "103"
             for field in fields:
               if field == 'flow_name / schedule name' and mydict[field]:
+              	 if mydict[field] in flowDict:
+                          flowDict[mydict[field]] += 1
+                          number = flowDict[mydict[field]]
+                          
+                        else:
+                          flowDict[mydict[field]]=0
+                          number = 0
                                  
                 flow_path = app_name+":"+mydict[field]
                 rowDict["flow_path"] = flow_path
@@ -118,6 +127,7 @@ class CSVExtract:
                 job_path = app_name+":"+mydict["flow_name / schedule name"]+"/"+mydict[field]
                 rowDict["job_name"] = mydict[field]
                 rowDict["job_path"] = job_path
+                rowDict["source_version"] = number
               elif field not in( 'flow_name / schedule name','Job Name') and mydict["flow_name / schedule name"]:
                 jsonDict[field] = mydict[field]
                 rowDict["AdditionalInfo"] = json.dumps(jsonDict)
