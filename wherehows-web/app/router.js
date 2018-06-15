@@ -167,6 +167,9 @@ AppRouter.map(function() {
     this.route('dataset', {
       path: '/dataset/:id'
     });
+    this.route('flow', {
+        path: '/flow/:application/:project/:flowId'
+      });
   });
   this.route('login');
 
