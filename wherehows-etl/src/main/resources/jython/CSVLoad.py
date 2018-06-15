@@ -617,10 +617,10 @@ class SchedulerTransform:
     self.logger.debug(query)
     self.wh_cursor.execute(query)
     self.wh_con.commit()
-    #query = self._clear_staging_tempalte.format(table=t.get("table"), app_id=self.app_id)
-    #self.logger.debug(query)
-    #self.wh_cursor.execute(query)
-    #self.wh_con.commit()
+    query = self._clear_staging_tempalte.format(table=t.get("table"), app_id=self.app_id)
+    self.logger.debug(query)
+    self.wh_cursor.execute(query)
+    self.wh_con.commit()
 
     # Load file into stagging table
     query = self._read_file_template.format(folder=self.metadata_folder, file=t.get("file"), table=t.get("table"),
@@ -679,6 +679,21 @@ class SchedulerTransform:
             update job_execution_data_lineage jedl
             join job_execution je on je.app_id = jedl.app_id and je.job_exec_uuid = jedl.job_exec_uuid and je.job_name= jedl.job_name
               set jedl.flow_exec_id = je.flow_exec_id where je.app_id = {app_id}
+            """.format(app_id=self.app_id)
+    self.logger.debug(query)
+    self.wh_cursor.execute(query)
+    self.wh_con.commit()
+    query = """
+            update job_execution_data_lineage jedl
+            join job_execution je on je.app_id = jedl.app_id and je.job_exec_uuid = jedl.job_exec_uuid and je.job_name= jedl.job_name
+              set jedl.job_exec_id = je.job_exec_id where je.app_id = {app_id}
+            """.format(app_id=self.app_id)
+    self.logger.debug(query)
+    self.wh_cursor.execute(query)
+    self.wh_con.commit()
+    query = """
+            update job_execution_data_lineage jedl
+            set jedl.job_finished_unixtime = unix_timestamp(NOW()) where je.app_id = {app_id}
             """.format(app_id=self.app_id)
     self.logger.debug(query)
     self.wh_cursor.execute(query)
