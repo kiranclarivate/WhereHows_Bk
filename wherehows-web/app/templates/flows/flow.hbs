@@ -8,7 +8,22 @@
       </li>
     {{/each}}
   </ul>
-
+<div class="row">
+      
+      <div class="col-xs-7 text-right">
+        <ul class="datasetDetailsLinks">
+         
+          <li>
+            {{#link-to 'lineage.flow' model.data.application model.data.application  model.data.id title='View Lineage'}}
+              <i class="fa fa-sitemap"></i>
+              <span class="hidden-sm hidden-xs">Lineage</span>
+            {{/link-to}}
+          </li>
+          
+         
+        </ul>
+      </div>
+    </div>
   {{#dataset-table
     fields=model.data.jobs as |table|}}
     {{#table.head as |head|}}
