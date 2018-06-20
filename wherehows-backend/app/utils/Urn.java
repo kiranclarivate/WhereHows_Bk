@@ -28,7 +28,7 @@ public class Urn {
   public String schemaName;
   public String abstractObjectName;
 
-  static final String[] stoList = new String[] {"teradata", "hdfs", "hive", "dalids", "oracle", "mysql", "pinot","greenplum","s3"};
+  static final String[] stoList = new String[] {"teradata", "hdfs", "hive", "dalids", "oracle", "mysql", "pinot","greenplum"};
   static final Set<String> datasetTypes = new HashSet<String>(Arrays.asList(stoList));
 
   /**
@@ -57,7 +57,7 @@ public class Urn {
       case "espresso":
       case "pinot":
       case "greenplum":
-      case "s3":
+      
 
       case "hive":
       case "dalids":
@@ -89,7 +89,6 @@ public class Urn {
       case "espresso":
       case "pinot":
       case "greenplum":
-      case "s3":
       case "hive":
       case "dalids":
         urnString = this.datasetType + ":///" + schemaName + "/" + abstractObjectName;

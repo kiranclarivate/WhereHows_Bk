@@ -238,6 +238,7 @@ class SchedulerTransform:
     self.logger.debug(query)
     self.wh_cursor.execute(query)
     self.wh_con.commit()
+    
 
   def read_dag_file_to_stg(self):
     t = self._tables["dags"]
@@ -324,7 +325,7 @@ class SchedulerTransform:
             (SELECT source_job_id as job_id, source_version, SUBSTRING(GROUP_CONCAT(distinct target_job_id SEPARATOR ','), 1, 4000) as post_jobs
             FROM {table} WHERE app_id = {app_id} AND source_job_id != target_job_id
             GROUP BY source_job_id, source_version) as d
-            ON sj.job_id = d.job_id AND sj.source_version = d.source_version
+            ON sj.job_id = d.job_id 
             SET sj.post_jobs = d.post_jobs
             WHERE sj.app_id = {app_id};
             """.format(app_id=self.app_id, table=t.get("table"))
@@ -337,7 +338,7 @@ class SchedulerTransform:
             (SELECT target_job_id as job_id, source_version, SUBSTRING(GROUP_CONCAT(distinct source_job_id SEPARATOR ','), 1, 4000) as pre_jobs
             FROM {table} WHERE app_id = {app_id} AND source_job_id != target_job_id
             GROUP BY target_job_id, source_version) as d
-            ON sj.job_id = d.job_id AND sj.source_version = d.source_version
+            ON sj.job_id = d.job_id 
             SET sj.pre_jobs = d.pre_jobs
             WHERE sj.app_id = {app_id};
             """.format(app_id=self.app_id, table=t.get("table"))
@@ -617,10 +618,10 @@ class SchedulerTransform:
     self.logger.debug(query)
     self.wh_cursor.execute(query)
     self.wh_con.commit()
-    query = self._clear_staging_tempalte.format(table=t.get("table"), app_id=self.app_id)
-    self.logger.debug(query)
-    self.wh_cursor.execute(query)
-    self.wh_con.commit()
+   # query = self._clear_staging_tempalte.format(table=t.get("table"), app_id=self.app_id)
+    #self.logger.debug(query)
+    #self.wh_cursor.execute(query)
+    #self.wh_con.commit()
 
     # Load file into stagging table
     query = self._read_file_template.format(folder=self.metadata_folder, file=t.get("file"), table=t.get("table"),
@@ -693,7 +694,7 @@ class SchedulerTransform:
     self.wh_con.commit()
     query = """
             update job_execution_data_lineage jedl
-            set jedl.job_finished_unixtime = unix_timestamp(NOW()) where je.app_id = {app_id}
+            set jedl.job_finished_unixtime = unix_timestamp(NOW()) where jedl.app_id = {app_id}
             """.format(app_id=self.app_id)
     self.logger.debug(query)
     self.wh_cursor.execute(query)
