@@ -13,12 +13,9 @@
  */
 package dao;
 
-import java.util.*;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -193,22 +190,22 @@ public class SearchDAO extends AbstractMySQLOpenSourceDAO
   {
     // use elastic search completion suggester, ES will validate the input and limit
     List<String> completionSuggestionList = new ArrayList<String>();
-		Set<String> completionSuggestionSet = new HashSet<String>();
-
     JsonNode responseNode = null;
     ObjectNode keywordNode = null;
 
     try {
-    	keywordNode = utils.Search.generateElasticSearchCompletionSuggesterQuery(fieldName, input, limit);
+      keywordNode = utils.Search.generateElasticSearchCompletionSuggesterQuery(fieldName, input, limit);
     } catch (Exception e) {
       Logger.error("Elastic search completion suggester error. Error message :" + e.getMessage());
     }
 
-		Logger.info("The completion suggester query sent to Elastic Search was: " + keywordNode.toString());
+    Logger.info("The completion suggester query sent to Elastic Search is: " + keywordNode.toString());
+    Logger.info("Elastic URL: " + Play.application().configuration().getString(elasticSearchTypeURLKey));
 
     Promise<WSResponse> responsePromise =
         WS.url(Play.application().configuration().getString(elasticSearchTypeURLKey)).post(keywordNode);
     responseNode = responsePromise.get(1000).asJson();
+    Logger.info("responseNode : " + responseNode.toString());
 
     if (responseNode == null || !responseNode.isContainerNode()) {
       return completionSuggestionList;
@@ -219,6 +216,8 @@ public class SearchDAO extends AbstractMySQLOpenSourceDAO
       Logger.error("Elastic search completion suggester response does not contain suggest node");
       return completionSuggestionList;
     }
+
+    Logger.info("Response suggestNode is " + suggestNode.toString());
 
     JsonNode whSuggestNode = suggestNode.get("wh-suggest");
     if (whSuggestNode == null || !whSuggestNode.isArray()) {
@@ -253,12 +252,10 @@ public class SearchDAO extends AbstractMySQLOpenSourceDAO
           continue;
         }
         String oneSuggestion = textNode.get("text").asText();
-				completionSuggestionSet.add(oneSuggestion);
+        completionSuggestionList.add(oneSuggestion);
       }
     }
 
-    completionSuggestionList.addAll(completionSuggestionSet);
-		Logger.info("Returned suggestion list is: " + completionSuggestionList);
     return completionSuggestionList;
   }
 
@@ -402,7 +399,7 @@ public class SearchDAO extends AbstractMySQLOpenSourceDAO
 			}
 
 			if (filterNode != null) {
-				queryNode.put("post_filter", filterNode);
+				queryNode.put("filter", filterNode);
 			}
 
 			Logger.info(

@@ -30,7 +30,7 @@ class OracleExtract:
   field_output_list = []
   sample_output_list = []
 
-  ignored_owner_regex = 'ANONYMOUS|PUBLIC|SYS|SYSTEM|DBSNMP|MDSYS|CTXSYS|XDB|TSMSYS|ORACLE.*|APEX.*|TEST?*|GG_.*|\$'
+  ignored_owner_regex = 'ANONYMOUS|PUBLIC|SQLTXPLAIN|SYS|SYSTEM|DBSNMP|MDSYS|CTXSYS|XDB|TSMSYS|ORACLE.*|APEX.*|TEST?*|GG_.*|\$'
 
   def __init__(self):
     self.logger = LoggerFactory.getLogger('jython script : ' + self.__class__.__name__)
@@ -251,6 +251,8 @@ class OracleExtract:
     sample_data = []
 
     sql = 'SELECT * FROM %s WHERE ROWNUM <= %d' % (table_fullname, num_rows)
+    self.logger.info("sample sql = %s" %sql)
+
     cursor = self.conn_db.cursor()
     try:
       cursor.execute(sql)
@@ -259,6 +261,8 @@ class OracleExtract:
       if len(rows) == 0:
         self.logger.error("dataset {} is empty".format(table_fullname))
         return
+      else:
+        self.logger.info("sample fetched = %d" %len(rows))
 
       # retrieve column names
       columns = [i[0] for i in cursor.description]

@@ -23,7 +23,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.persistence.EntityManagerFactory;
+import wherehows.models.table.DictDataset;
 import wherehows.models.table.DictFieldDetail;
 
 import static wherehows.util.UrnUtil.*;
@@ -48,14 +50,19 @@ public class FieldDetailDao extends BaseDao {
   /**
    * Insert or update dict field details given information from MetadataChangeEvent
    * @param identifier DatasetIdentifier
-   * @param datasetId int
+   * @param dataset DictDataset
    * @param auditStamp ChangeAuditStamp
    * @param schema DatasetSchema
    * @throws Exception
    */
-  public void insertUpdateDatasetFields(@Nonnull DatasetIdentifier identifier, int datasetId,
-      @Nonnull DatasetProperty property, @Nonnull ChangeAuditStamp auditStamp, @Nonnull DatasetSchema schema)
+  public void insertUpdateDatasetFields(@Nonnull DatasetIdentifier identifier, @Nullable DictDataset dataset,
+      @Nullable DatasetProperty property, @Nonnull ChangeAuditStamp auditStamp, @Nonnull DatasetSchema schema)
       throws Exception {
+
+    if (dataset == null) {
+      throw new RuntimeException("Fail to update dataset fields, dataset is NULL.");
+    }
+    int datasetId = dataset.getId();
 
     List<DictFieldDetail> fields = findListBy(DictFieldDetail.class, "datasetId", datasetId);
 
@@ -70,6 +77,17 @@ public class FieldDetailDao extends BaseDao {
     }
 
     // update field comments?
+  }
+
+  /**
+   * Insert or update Schemaless from MetadataChangeEvent
+   * @param identifier DatasetIdentifier
+   * @param auditStamp ChangeAuditStamp
+   * @throws Exception
+   */
+  public void insertUpdateSchemaless(@Nonnull DatasetIdentifier identifier, @Nonnull ChangeAuditStamp auditStamp)
+      throws Exception {
+    throw new UnsupportedOperationException("Support for Schemaless not yet implemented.");
   }
 
   /**

@@ -13,19 +13,18 @@
  */
 package wherehows.actors;
 
-import akka.ConfigurationException;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -51,6 +50,8 @@ public class KafkaClientMaster extends UntypedActor {
   // List of kafka workers
   private static List<ActorRef> _kafkaWorkers = new ArrayList<>();
 
+  private static final Config CONFIG = ConfigFactory.load();
+
   public KafkaClientMaster(String kafkaJobDir) {
     this.KAFKA_JOB_DIR = kafkaJobDir;
   }
@@ -72,7 +73,7 @@ public class KafkaClientMaster extends UntypedActor {
       final String kafkaJobName = entry.getKey();
       final Properties props = entry.getValue();
 
-      final int numberOfWorkers = Integer.valueOf(props.getProperty(Constant.KAFKA_WORKER_COUNT, "1"));
+      final int numberOfWorkers = Integer.parseInt(props.getProperty(Constant.KAFKA_WORKER_COUNT, "1"));
 
       log.info("Create Kafka client with config: " + props);
       try {
@@ -80,8 +81,8 @@ public class KafkaClientMaster extends UntypedActor {
         for (int i = 0; i < numberOfWorkers; i++) {
           ActorRef worker = makeKafkaWorker(kafkaJobName, props);
           _kafkaWorkers.add(worker);
-          worker.tell("ApplicationStart", getSelf());
-          log.info("Started Kafka job: " + kafkaJobName);
+          worker.tell(KafkaWorker.WORKER_START, getSelf());
+          log.info("Started Kafka worker #{} for job {}", i, kafkaJobName);
         }
       } catch (Exception e) {
         log.error("Error starting Kafka job: " + kafkaJobName, e);
@@ -127,14 +128,14 @@ public class KafkaClientMaster extends UntypedActor {
     KafkaProducer<String, IndexedRecord> producer = null;
     if (producerTopic != null) {
       Properties producerProp = getPropertyTrimPrefix(props, "producer");
-
       producer = getProducer(producerProp);
     }
 
     // get processor instance
     Class processorClass = Class.forName(processor);
-    Constructor<?> ctor = processorClass.getConstructor(DaoFactory.class, KafkaProducer.class);
-    KafkaMessageProcessor processorInstance = (KafkaMessageProcessor) ctor.newInstance(DAO_FACTORY, producer);
+    Constructor<?> ctor = processorClass.getConstructor(Config.class, DaoFactory.class, String.class, KafkaProducer.class);
+    KafkaMessageProcessor processorInstance =
+        (KafkaMessageProcessor) ctor.newInstance(CONFIG, DAO_FACTORY, producerTopic, producer);
 
     // create worker
     return getContext().actorOf(Props.create(KafkaWorker.class, consumerTopic, consumer, processorInstance));

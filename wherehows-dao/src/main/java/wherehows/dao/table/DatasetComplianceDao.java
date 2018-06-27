@@ -24,8 +24,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
+import wherehows.models.table.DictDataset;
 import wherehows.models.table.DsCompliance;
 import wherehows.models.view.DatasetCompliance;
 import wherehows.models.view.DatasetFieldEntity;
@@ -50,8 +52,14 @@ public class DatasetComplianceDao extends BaseDao {
     return findBy(DsCompliance.class, "datasetId", datasetId);
   }
 
-  public DatasetCompliance getDatasetComplianceByDatasetId(int datasetId, String datasetUrn) throws IOException {
+  @Nullable
+  public DatasetCompliance getDatasetComplianceByDatasetId(int datasetId, @Nonnull String datasetUrn) throws Exception {
     return dsComplianceToDatasetCompliance(findComplianceById(datasetId));
+  }
+
+  @Nonnull
+  public DatasetCompliance getDatasetComplianceByUrn(@Nonnull String datasetUrn) throws Exception {
+    throw new UnsupportedOperationException("Not implemented yet, use getDatasetComplianceByDatasetId");
   }
 
   public void updateDatasetCompliance(@Nonnull DatasetCompliance record, @Nonnull String user) throws Exception {
@@ -61,18 +69,27 @@ public class DatasetComplianceDao extends BaseDao {
     update(compliance);
   }
 
+  public void updateDatasetComplianceByUrn(@Nonnull DatasetCompliance record, @Nonnull String user) throws Exception {
+    throw new UnsupportedOperationException("Not implemented yet, use updateDatasetCompliance");
+  }
+
   /**
    * Insert / update dataset compliance table given information from MetadataChangeEvent
    * @param identifier DatasetIdentifier
-   * @param datasetId int
+   * @param dataset DictDataset
    * @param auditStamp ChangeAuditStamp
    * @param compliance MCE CompliancePolicy
    * @throws Exception
    */
-  public void insertUpdateCompliance(@Nonnull DatasetIdentifier identifier, int datasetId,
+  public void insertUpdateCompliance(@Nonnull DatasetIdentifier identifier, @Nullable DictDataset dataset,
       @Nonnull ChangeAuditStamp auditStamp, @Nonnull CompliancePolicy compliance) throws Exception {
 
     String datasetUrn = toWhDatasetUrn(identifier);
+
+    if (dataset == null) {
+      throw new RuntimeException("Fail to update dataset compliance, dataset is NULL.");
+    }
+    int datasetId = dataset.getId();
 
     // find dataset compliance if exist
     DsCompliance dsCompliance = null;
@@ -118,22 +135,30 @@ public class DatasetComplianceDao extends BaseDao {
     dsCompliance.setModifiedBy(actor);
   }
 
-  public DsComplianceSuggestion findComplianceSuggestionByUrn(@Nonnull String datasetUrn) {
-    throw new UnsupportedOperationException("Compliance Suggestion not implemented.");
+  @Nullable
+  public DsComplianceSuggestion findComplianceSuggestionByUrn(@Nonnull String datasetUrn) throws Exception {
+    return null;
+    //throw new UnsupportedOperationException("Compliance Suggestion not implemented.");
+  }
+
+  @Nullable
+  public DsComplianceSuggestion getComplianceSuggestion(@Nonnull String datasetUrn) throws Exception {
+    return null;
+    //throw new UnsupportedOperationException("Compliance Suggestion not implemented.");
   }
 
   /**
    * Insert / update dataset suggested compliance data from MetadataChangeEvent
    * @param identifier DatasetIdentifier
-   * @param datasetId int
+   * @param dataset DictDataset
    * @param auditStamp ChangeAuditStamp
    * @param suggestion MCE SuggestedCompliancePolicy
    * @throws Exception
    */
-  public void insertUpdateSuggestedCompliance(@Nonnull DatasetIdentifier identifier, int datasetId,
+  public void insertUpdateSuggestedCompliance(@Nonnull DatasetIdentifier identifier, @Nullable DictDataset dataset,
       @Nonnull ChangeAuditStamp auditStamp, @Nonnull SuggestedCompliancePolicy suggestion) throws Exception {
     // TODO: write suggested compliance information to DB
-    throw new UnsupportedOperationException("Compliance Suggestion not implemented.");
+    //throw new UnsupportedOperationException("Compliance Suggestion not implemented.");
   }
 
   /**
@@ -163,7 +188,7 @@ public class DatasetComplianceDao extends BaseDao {
    * @return DatasetCompliance
    * @throws IOException
    */
-  public DatasetCompliance dsComplianceToDatasetCompliance(DsCompliance dsCompliance) throws IOException {
+  public DatasetCompliance dsComplianceToDatasetCompliance(@Nonnull DsCompliance dsCompliance) throws IOException {
     DatasetCompliance compliance = new DatasetCompliance();
     compliance.setDatasetId(dsCompliance.getDatasetId());
     compliance.setDatasetUrn(dsCompliance.getDatasetUrn());

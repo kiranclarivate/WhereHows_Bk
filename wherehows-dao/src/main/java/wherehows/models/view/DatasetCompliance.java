@@ -37,7 +37,11 @@ public class DatasetCompliance {
 
   private Map<String, Boolean> datasetClassification;
 
+  private Boolean containingPersonalData;
+
   private String modifiedBy;
 
   private Long modifiedTime;
+
+  private Boolean fromUpstream;
 }

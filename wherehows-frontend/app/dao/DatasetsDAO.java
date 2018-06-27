@@ -62,59 +62,63 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 
 	private final static String SELECT_PAGED_DATASET  = "SELECT " +
 			"d.id, d.name, d.urn, d.source, d.properties, d.schema, " +
+			"d.parent_name, " +
 			"GROUP_CONCAT(o.owner_id ORDER BY o.sort_id ASC SEPARATOR ',') as owner_id, " +
 			"GROUP_CONCAT(IFNULL(u.display_name, '*') ORDER BY o.sort_id ASC SEPARATOR ',') as owner_name, " +
 			"FROM_UNIXTIME(source_created_time) as created, d.source_modified_time, " +
-			"FROM_UNIXTIME(source_modified_time) as modified " +
+			"FROM_UNIXTIME(source_modified_time) as modified, d.db_id " +
 			"FROM ( SELECT * FROM dict_dataset ORDER BY urn LIMIT ?, ? ) d " +
 			"LEFT JOIN dataset_owner o on (d.id = o.dataset_id and (o.is_deleted is null OR o.is_deleted != 'Y')) " +
 			"LEFT JOIN dir_external_user_info u on (o.owner_id = u.user_id and u.app_id = 300) " +
-			"GROUP BY d.id, d.name, d.urn, d.source, d.properties, d.schema, " +
+			"GROUP BY d.id, d.name, d.urn, d.source, d.properties, d.schema, d.db_id, d.parent_name, " +
 			"created, d.source_modified_time, modified";
 
 	private final static String SELECT_PAGED_DATASET_BY_CURRENT_USER  = "SELECT " +
 			"d.id, d.name, d.urn, d.source, d.schema, d.properties, " +
 			"f.dataset_id, w.id as watch_id, " +
+			"d.parent_name, " +
 			"GROUP_CONCAT(o.owner_id ORDER BY o.sort_id ASC SEPARATOR ',') as owner_id, " +
 			"GROUP_CONCAT(IFNULL(u.display_name, '*') ORDER BY o.sort_id ASC SEPARATOR ',') as owner_name, " +
 			"FROM_UNIXTIME(source_created_time) as created, d.source_modified_time, " +
-			"FROM_UNIXTIME(source_modified_time) as modified " +
-			"FROM ( SELECT * FROM dict_dataset ORDER BY urn LIMIT ?, ?) d LEFT JOIN favorites f ON (" +
-			"d.id = f.dataset_id and f.user_id = ?) " +
+			"FROM_UNIXTIME(source_modified_time) as modified, d.db_id " +
+			"FROM ( SELECT * FROM dict_dataset ORDER BY urn LIMIT ?, ?) d " +
+			"LEFT JOIN favorites f ON (d.id = f.dataset_id and f.user_id = ?) " +
 			"LEFT JOIN watch w on (d.id = w.item_id and w.item_type = 'dataset' and w.user_id = ?) " +
 			"LEFT JOIN dataset_owner o on (d.id = o.dataset_id and (o.is_deleted is null OR o.is_deleted != 'Y')) " +
 			"LEFT JOIN dir_external_user_info u on (o.owner_id = u.user_id and u.app_id = 300) " +
-			"GROUP BY d.id, d.name, d.urn, d.source, d.schema, d.properties, f.dataset_id, " +
+			"GROUP BY d.id, d.db_id, d.name, d.urn, d.source, d.schema, d.properties, f.dataset_id, d.parent_name, " +
 			"watch_id, created, d.source_modified_time, modified";
 
 	private final static String GET_PAGED_DATASET_COUNT  = "SELECT count(*) FROM dict_dataset";
 
 	private final static String SELECT_PAGED_DATASET_BY_URN  = "SELECT " +
 			"d.id, d.name, d.urn, d.source, d.properties, d.schema, " +
+			"d.parent_name, " +
 			"GROUP_CONCAT(o.owner_id ORDER BY o.sort_id ASC SEPARATOR ',') as owner_id, " +
 			"GROUP_CONCAT(IFNULL(u.display_name, '*') ORDER BY o.sort_id ASC SEPARATOR ',') as owner_name, " +
 			"FROM_UNIXTIME(source_created_time) as created, d.source_modified_time, " +
-			"FROM_UNIXTIME(source_modified_time) as modified " +
+			"FROM_UNIXTIME(source_modified_time) as modified, d.db_id " +
 			"FROM ( SELECT * FROM dict_dataset WHERE urn LIKE ? ORDER BY urn limit ?, ? ) d " +
 			"LEFT JOIN dataset_owner o on (d.id = o.dataset_id and (o.is_deleted is null OR o.is_deleted != 'Y')) " +
 			"LEFT JOIN dir_external_user_info u on (o.owner_id = u.user_id and u.app_id = 300) " +
-			"GROUP BY d.id, d.name, d.urn, d.source, d.properties, d.schema, created, " +
+			"GROUP BY d.id, d.name, d.urn, d.source, d.properties, d.schema, created, d.db_id, d.parent_name, " +
 			"d.source_modified_time, modified";
 
 	private final static String SELECT_PAGED_DATASET_BY_URN_CURRENT_USER  = "SELECT " +
 			"d.id, d.name, d.urn, d.source, d.schema, " +
+			"d.parent_name, " +
 			"GROUP_CONCAT(o.owner_id ORDER BY o.sort_id ASC SEPARATOR ',') as owner_id, " +
 			"GROUP_CONCAT(IFNULL(u.display_name, '*') ORDER BY o.sort_id ASC SEPARATOR ',') as owner_name, " +
 			"d.properties, f.dataset_id, w.id as watch_id, " +
 			"FROM_UNIXTIME(source_created_time) as created, d.source_modified_time, " +
-			"FROM_UNIXTIME(source_modified_time) as modified " +
+			"FROM_UNIXTIME(source_modified_time) as modified, d.db_id " +
 			"FROM ( SELECT * FROM dict_dataset WHERE urn LIKE ?  ORDER BY urn LIMIT ?, ? ) d " +
 			"LEFT JOIN favorites f ON (" +
 			"d.id = f.dataset_id and f.user_id = ?) " +
 			"LEFT JOIN watch w ON (d.id = w.item_id and w.item_type = 'dataset' and w.user_id = ?) " +
 			"LEFT JOIN dataset_owner o on (d.id = o.dataset_id and (o.is_deleted is null OR o.is_deleted != 'Y')) " +
 			"LEFT JOIN dir_external_user_info u on (o.owner_id = u.user_id and u.app_id = 300) " +
-			"GROUP BY d.id, d.name, d.urn, d.source, d.schema, d.properties, f.dataset_id, " +
+			"GROUP BY d.id, d.name, d.urn, d.source, d.schema, d.properties, f.dataset_id, d.db_id, d.parent_name, " +
 			"watch_id, created, d.source_modified_time, modified";
 
 	private final static String GET_PAGED_DATASET_COUNT_BY_URN  = "SELECT count(*) FROM dict_dataset WHERE urn LIKE ?";
@@ -124,14 +128,15 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 
 	private final static String GET_DATASET_BY_ID = "SELECT d.id, max(s.id) as schema_history_id, d.name, " +
 			"d.urn, d.source, d.schema, GROUP_CONCAT(o.owner_id ORDER BY o.sort_id ASC SEPARATOR ',') as owner_id, " +
+			"d.parent_name, " +
 			"GROUP_CONCAT(IFNULL(u.display_name, '*') ORDER BY o.sort_id ASC SEPARATOR ',') as owner_name, " +
 			"GROUP_CONCAT(IFNULL(u.email, '*') ORDER BY o.sort_id ASC SEPARATOR ',') as owner_email, " +
 			"FROM_UNIXTIME(source_created_time) as created, d.source_modified_time, " +
-			"FROM_UNIXTIME(source_modified_time) as modified " +
+			"FROM_UNIXTIME(source_modified_time) as modified, d.db_id " +
 			"FROM dict_dataset d LEFT JOIN dict_dataset_schema_history s on (d.id = s.dataset_id) " +
 			"LEFT JOIN dataset_owner o on (d.id = o.dataset_id) " +
 			"LEFT JOIN dir_external_user_info u on (o.owner_id = u.user_id) " +
-			"WHERE d.id = ? GROUP BY d.id, d.name, d.urn, d.source, d.schema, " +
+			"WHERE d.id = ? GROUP BY d.id, d.db_id, d.name, d.urn, d.source, d.schema, d.parent_name, " +
 			"created, d.source_modified_time, modified";
 
 	private final static String GET_DATASET_BY_ID_CURRENT_USER  = "SELECT DISTINCT d.id, " +
@@ -141,7 +146,7 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 			"GROUP_CONCAT(IFNULL(u.display_name, '*') ORDER BY o.sort_id ASC SEPARATOR ',') as owner_name, " +
 			"GROUP_CONCAT(IFNULL(u.email, '*') ORDER BY o.sort_id ASC SEPARATOR ',') as owner_email, " +
 			"FROM_UNIXTIME(d.source_created_time) as created, " +
-			"d.source_modified_time, " +
+			"d.source_modified_time, d.db_id, d.parent_name, " +
 			"FROM_UNIXTIME(d.source_modified_time) as modified, f.dataset_id, w.id as watch_id FROM dict_dataset d " +
 			"LEFT JOIN favorites f ON (d.id = f.dataset_id and f.user_id = ?) " +
 			"LEFT JOIN dict_dataset_schema_history s on (d.id = s.dataset_id) " +
@@ -362,6 +367,7 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 			"JOIN cfg_database d on l.db_id = d.db_id WHERE dataset_id = ? and partition_grain = ? " +
 			"ORDER by l.data_time_expr DESC";
 
+	private static final String PROXY_HOST = System.getenv("PROXY_HOST");
 
 	public static List<String> getDatasetOwnerTypes()
 	{
@@ -439,17 +445,17 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 				for (Map row : rows) {
 
 					Dataset ds = new Dataset();
-					Timestamp modified = (Timestamp)row.get(DatasetRowMapper.DATASET_MODIFIED_TIME_COLUMN);
-					ds.id = (Long)row.get(DatasetRowMapper.DATASET_ID_COLUMN);
-					ds.name = (String)row.get(DatasetRowMapper.DATASET_NAME_COLUMN);
-					ds.source = (String)row.get(DatasetRowMapper.DATASET_SOURCE_COLUMN);
-					ds.urn = (String)row.get(DatasetRowMapper.DATASET_URN_COLUMN);
-					ds.schema = (String)row.get(DatasetRowMapper.DATASET_SCHEMA_COLUMN);
-					String strOwner = (String)row.get(DatasetRowMapper.DATASET_OWNER_ID_COLUMN);
-					String strOwnerName = (String)row.get(DatasetRowMapper.DATASET_OWNER_NAME_COLUMN);
+					Timestamp modified = (Timestamp)row.get(DatasetWithUserRowMapper.DATASET_MODIFIED_TIME_COLUMN);
+					ds.id = (Long)row.get(DatasetWithUserRowMapper.DATASET_ID_COLUMN);
+					ds.name = (String)row.get(DatasetWithUserRowMapper.DATASET_NAME_COLUMN);
+					ds.source = (String)row.get(DatasetWithUserRowMapper.DATASET_SOURCE_COLUMN);
+					ds.urn = (String)row.get(DatasetWithUserRowMapper.DATASET_URN_COLUMN);
+					ds.schema = (String)row.get(DatasetWithUserRowMapper.DATASET_SCHEMA_COLUMN);
+					String strOwner = (String)row.get(DatasetWithUserRowMapper.DATASET_OWNER_ID_COLUMN);
+					String strOwnerName = (String)row.get(DatasetWithUserRowMapper.DATASET_OWNER_NAME_COLUMN);
 					Long sourceModifiedTime =
-							(Long)row.get(DatasetRowMapper.DATASET_SOURCE_MODIFIED_TIME_COLUMN);
-					String properties = (String)row.get(DatasetRowMapper.DATASET_PROPERTIES_COLUMN);
+							(Long)row.get(DatasetWithUserRowMapper.DATASET_SOURCE_MODIFIED_TIME_COLUMN);
+					String properties = (String)row.get(DatasetWithUserRowMapper.DATASET_PROPERTIES_COLUMN);
 					try
 					{
 						if (StringUtils.isNotBlank(properties))
@@ -509,8 +515,8 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 						}
 					}
 
-					Integer favoriteId = (Integer)row.get(DatasetRowMapper.FAVORITE_DATASET_ID_COLUMN);
-					Long watchId = (Long)row.get(DatasetRowMapper.DATASET_WATCH_ID_COLUMN);
+					Integer favoriteId = (Integer)row.get(DatasetWithUserRowMapper.FAVORITE_DATASET_ID_COLUMN);
+					Long watchId = (Long)row.get(DatasetWithUserRowMapper.DATASET_WATCH_ID_COLUMN);
 
 					Long schemaHistoryRecordCount = 0L;
 					try
@@ -622,7 +628,7 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 		int sortId = 0;
 		for (Map row : rows)
 		{
-			String ownerId = (String)row.get(DatasetRowMapper.DATASET_OWNER_ID_COLUMN);
+			String ownerId = (String)row.get(DatasetWithUserRowMapper.DATASET_OWNER_ID_COLUMN);
 			String namespace = (String)row.get("namespace");
 			int ret = getJdbcTemplate().update(UPDATE_DATASET_OWNER_SORT_ID, ++sortId, id, ownerId, namespace);
 			if (ret <= 0)
@@ -656,7 +662,7 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 		List<User> owners = new ArrayList<User>();
 		for (Map row : rows)
 		{
-			String ownerId = (String)row.get(DatasetRowMapper.DATASET_OWNER_ID_COLUMN);
+			String ownerId = (String)row.get(DatasetWithUserRowMapper.DATASET_OWNER_ID_COLUMN);
 			String dislayName = (String)row.get("display_name");
 			if (StringUtils.isBlank(dislayName))
 			{
@@ -694,7 +700,7 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 		int sortId = 0;
 		for (Map row : rows)
 		{
-			String ownerId = (String)row.get(DatasetRowMapper.DATASET_OWNER_ID_COLUMN);
+			String ownerId = (String)row.get(DatasetWithUserRowMapper.DATASET_OWNER_ID_COLUMN);
 			String dislayName = (String)row.get("display_name");
 			String namespace = (String)row.get("namespace");
 			if (StringUtils.isBlank(dislayName))
@@ -735,6 +741,7 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 
 	public static Dataset getDatasetByID(int id, String user)
 	{
+		Logger.info("==== GET_DATASET_BY_ID ====" + GET_DATASET_BY_ID);
 		Dataset dataset = null;
 		Integer userId = 0;
 		if (StringUtils.isNotBlank(user))
@@ -753,8 +760,11 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 		{
 			if (userId != null && userId > 0)
 			{
+				Logger.info("useruser=" + userId);
 				dataset = getJdbcTemplate().queryForObject(GET_DATASET_BY_ID_CURRENT_USER, new DatasetWithUserRowMapper(),
 						userId,	userId, id);
+				dataset.user_name = user;
+				dataset.proxy_host = PROXY_HOST;
 			}
 			else
 			{
@@ -1792,9 +1802,9 @@ public class DatasetsDAO extends AbstractMySQLOpenSourceDAO
 		for (Map row : rows) {
 
 			DatasetListViewNode node = new DatasetListViewNode();
-			node.datasetId = (Long) row.get(DatasetRowMapper.DATASET_ID_COLUMN);
-			node.nodeName = (String) row.get(DatasetRowMapper.DATASET_NAME_COLUMN);
-			String nodeUrn = (String) row.get(DatasetRowMapper.DATASET_URN_COLUMN);
+			node.datasetId = (Long) row.get(DatasetWithUserRowMapper.DATASET_ID_COLUMN);
+			node.nodeName = (String) row.get(DatasetWithUserRowMapper.DATASET_NAME_COLUMN);
+			String nodeUrn = (String) row.get(DatasetWithUserRowMapper.DATASET_URN_COLUMN);
 			if (node.datasetId != null && node.datasetId > 0)
 			{
 				node.nodeUrl = "#/datasets/" + node.datasetId;

@@ -34,8 +34,10 @@ public class Constant {
   public static final String JOB_JYTHON_LOAD_KEY = "job.jython.load";
 
   // ETL property keys
+  public static final String WH_ETL_JAVA_CMD = "etl.java.cmd";
   public static final String WH_ETL_JOBS_DIR = "etl.jobs.dir";
   public static final String WH_ETL_TEMP_DIR = "etl.temp.dir";
+  public static final String WH_ETL_MAX_CONCURERNT_JOBS = "etl.max.concurrent.jobs";
 
   // Rebuild properties
   public static final String REBUILD_TREE_DATASET = "rebuild.tree.dataset";
@@ -222,6 +224,9 @@ public class Constant {
   public static final String HIVE_HDFS_MAP_CSV_FILE_KEY = "hive.hdfs_map_csv_file";
   public static final String HIVE_FIELD_METADATA_KEY = "hive.field_metadata";
 
+  public static final String HIVE_TABLE_WHITELIST_ENABLED = "hive.table_white_list_enabled";
+  public static final String HIVE_TABLE_BLACKLIST_ENABLED = "hive.table_black_list_enabled";
+
   public static final String KERBEROS_AUTH_KEY = "kerberos.auth";
   public static final String KERBEROS_PRINCIPAL_KEY = "kerberos.principal";
   public static final String KERBEROS_KEYTAB_FILE_KEY = "kerberos.keytab.file";
@@ -243,7 +248,7 @@ public class Constant {
   public static final String ORA_SAMPLE_OUTPUT_KEY = "oracle.sample_data";
   public static final String ORA_LOAD_SAMPLE = "oracle.load_sample";
   public static final String ORA_EXCLUDE_DATABASES_KEY = "oracle.exclude_db";
-  
+
   // GreenPlum
   public static final String GP_DB_USERNAME_KEY = "greenplum.db.username";
   public static final String GP_DB_PASSWORD_KEY = "greenplum.db.password";
@@ -295,7 +300,8 @@ public class Constant {
   public static final String ELASTICSEARCH_URL_REQUEST_TIMEOUT = "elasticsearch.url.request.timeout";
   public static final String WH_DB_MAX_RETRY_TIMES = "wh.db.max.retry.times";
   public static final String WH_ELASTICSEARCH_INDEX_MAPPING_FILE = "wh.elasticsearch.index.mapping.file";
-  
+
+
   // DB2
   public static final String DB2_DB_USERNAME_KEY = "db2.db.username";
   public static final String DB2_DB_PASSWORD_KEY = "db2.db.password";
@@ -307,7 +313,7 @@ public class Constant {
   public static final String DB2_LOAD_SAMPLE = "db2.load_sample";
   public static final String DB2_EXCLUDE_DATABASES_KEY = "db2.exclude_db";
   public static final String DB2_INCLUDE_SCHEMAS_KEY = "db2.include_schema";
-  
+
   //CSV
   public static final String CSV_FLOW = "csv.flow";
   public static final String CSV_JOB = "csv.job";
@@ -320,7 +326,5 @@ public class Constant {
   public static final String CSV_LINEAGE = "csv.lineage";
   public static final String CSV_DATASET = "csv.dataset";
   public static final String DB_ID = "dataset.db_id";
- 
-  
 
 }

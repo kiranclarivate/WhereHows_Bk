@@ -211,7 +211,8 @@ class HiveTransform:
                                                       json.dumps(flds), dataset_urn, 'Hive', one_db_info['type'],
                                                       table['type'], '',
                                                       table.get(TableInfo.create_time),
-                                                      (int(table.get(TableInfo.source_modified_time,"0"))))
+                                                      (int(table.get(TableInfo.source_modified_time,"0"))),
+                                                      table['category'])
           schema_file_writer.append(dataset_scehma_record)
 
           dataset_idx += 1

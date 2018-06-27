@@ -33,7 +33,7 @@ CREATE TABLE `stg_dict_dataset` (
   `is_active`                   BOOLEAN NULL COMMENT 'is the dataset active / exist ?',
   `is_deprecated`               BOOLEAN NULL COMMENT 'is the dataset deprecated by user ?',
   `dataset_type`                VARCHAR(30) NULL
-  COMMENT 'hdfs, hive, kafka, teradata, mysql, sqlserver, file, nfs, pinot, salesforce, oracle, db2, netezza, cassandra, hbase, qfs, zfs,greenplum',
+  COMMENT 'hdfs, hive, kafka, teradata, mysql, sqlserver, file, nfs, pinot, salesforce, oracle, db2, netezza, cassandra, hbase, qfs, zfs',
   `hive_serdes_class`           VARCHAR(300)                                                                                NULL,
   `is_partitioned`              CHAR(1)                                                                                     NULL,
   `partition_layout_pattern_id` SMALLINT(6)                                                                                 NULL,
@@ -45,6 +45,7 @@ CREATE TABLE `stg_dict_dataset` (
   `created_time`                INT UNSIGNED COMMENT 'wherehows created time',
   `modified_time`               INT UNSIGNED COMMENT 'latest wherehows modified',
   `wh_etl_exec_id`              BIGINT COMMENT 'wherehows etl execution id that modified this record',
+  `category`                    varchar(50) NULL COMMENT 'such as Reference, Raw, Intermediate',
   PRIMARY KEY (`urn`, `db_id`)
 )
   ENGINE = InnoDB
@@ -55,6 +56,7 @@ CREATE TABLE `stg_dict_dataset` (
 -- dataset table
 CREATE TABLE `dict_dataset` (
   `id`                          INT(11) UNSIGNED NOT NULL                                                                   AUTO_INCREMENT,
+  `db_id`                       SMALLINT(6) UNSIGNED NOT NULL                                                               DEFAULT 0,
   `name`                        VARCHAR(200)                                                                                NOT NULL,
   `schema`                      MEDIUMTEXT CHARACTER SET utf8,
   `schema_type`                 VARCHAR(50)                                                                                 DEFAULT 'JSON'
@@ -73,7 +75,7 @@ CREATE TABLE `dict_dataset` (
   `is_active`                   BOOLEAN NULL COMMENT 'is the dataset active / exist ?',
   `is_deprecated`               BOOLEAN NULL COMMENT 'is the dataset deprecated by user ?',
   `dataset_type`                VARCHAR(30)                                                                                 NULL
-  COMMENT 'hdfs, hive, kafka, teradata, mysql, sqlserver, file, nfs, pinot, salesforce, oracle, db2, netezza, cassandra, hbase, qfs, zfs,greenplum',
+  COMMENT 'hdfs, hive, kafka, teradata, mysql, sqlserver, file, nfs, pinot, salesforce, oracle, db2, netezza, cassandra, hbase, qfs, zfs',
   `hive_serdes_class`           VARCHAR(300)                                                                                NULL,
   `is_partitioned`              CHAR(1)                                                                                     NULL,
   `partition_layout_pattern_id` SMALLINT(6)                                                                                 NULL,
@@ -86,8 +88,9 @@ CREATE TABLE `dict_dataset` (
   `created_time`                INT UNSIGNED COMMENT 'wherehows created time',
   `modified_time`               INT UNSIGNED COMMENT 'latest wherehows modified',
   `wh_etl_exec_id`              BIGINT COMMENT 'wherehows etl execution id that modified this record',
+  `category`                    varchar(50) NULL COMMENT 'such as Reference, Raw, Intermediate',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_dataset_urn` (`urn`)
+  UNIQUE KEY `uq_dataset_db_id_urn` (`db_id`,`urn`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = latin1;

@@ -200,12 +200,10 @@ public class FlowsDAO extends AbstractMySQLOpenSourceDAO {
         long count = 0;
         List<Flow> pagedFlows = new ArrayList<Flow>();
         List<Map<String, Object>> rows = null;
-        System.out.println("GET_PAGED_FLOWS:: "  + GET_PAGED_FLOWS + ":" + page + ":" + size);
         rows = getJdbcTemplate().queryForList(GET_PAGED_FLOWS, (page - 1) * size, size);
 
         try {
           count = getJdbcTemplate().queryForObject("SELECT FOUND_ROWS()", Long.class);
-          System.out.println("count:: "  + count);
         } catch (EmptyResultDataAccessException e) {
           Logger.error("Exception = " + e.getMessage());
         }
@@ -237,7 +235,6 @@ public class FlowsDAO extends AbstractMySQLOpenSourceDAO {
 
           if (flow.getFlow_id() != null && flow.getFlow_id() != 0) {
             try {
-            	System.out.println("GET_JOB_COUNT_BY_APP_ID_AND_FLOW_ID:: "  + GET_JOB_COUNT_BY_APP_ID_AND_FLOW_ID + "appID: " + flow.getAppId() + "flowid" + flow.getFlow_id());
               jobCount = getJdbcTemplate().queryForObject(GET_JOB_COUNT_BY_APP_ID_AND_FLOW_ID,
                   new Object[]{flow.getAppId(), flow.getFlow_id()}, Integer.class);
               flow.setJobCount(jobCount);
@@ -278,7 +275,6 @@ public class FlowsDAO extends AbstractMySQLOpenSourceDAO {
           long count = 0;
           List<Flow> pagedFlows = new ArrayList<Flow>();
           List<Map<String, Object>> rows = null;
-          System.out.println("GET_PAGED_FLOWS_BY_APP_ID:: "  + GET_PAGED_FLOWS_BY_APP_ID + "applicationID:: "  + applicationID + "size:: "  + size);
           rows = getJdbcTemplate().queryForList(GET_PAGED_FLOWS_BY_APP_ID, applicationID, (page - 1) * size, size);
 
           try {
@@ -466,7 +462,6 @@ public class FlowsDAO extends AbstractMySQLOpenSourceDAO {
       result = txTemplate.execute(new TransactionCallback<ObjectNode>() {
         public ObjectNode doInTransaction(TransactionStatus status) {
           List<Map<String, Object>> rows = null;
-          System.out.println("GET_PAGED_JOBS_BY_APP_ID_AND_FLOW_ID:: "  + GET_PAGED_JOBS_BY_APP_ID_AND_FLOW_ID + "appID: " + appID + "azkabanFlowId:: " + azkabanFlowId + "page:: "  +page + "size :: "  + size);
           rows = getJdbcTemplate().queryForList(GET_PAGED_JOBS_BY_APP_ID_AND_FLOW_ID, appID, azkabanFlowId,
               (page - 1) * size, size);
           long count = 0;

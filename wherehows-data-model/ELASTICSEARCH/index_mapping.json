@@ -50,6 +50,13 @@
         "urn": {
           "type": "text",
           "analyzer": "keyword_analyzer"
+        },
+        "db_id": {
+          "type": "text"
+        },
+        "category": {
+          "type": "text",
+          "analyzer": "keyword_analyzer"
         }
       }
     },

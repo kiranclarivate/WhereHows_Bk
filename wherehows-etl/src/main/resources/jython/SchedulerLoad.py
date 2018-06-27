@@ -46,7 +46,7 @@ class SchedulerLoad:
           SELECT app_id, flow_id, flow_name, flow_group, flow_path, flow_level, source_created_time, source_modified_time, source_version,
           is_active, is_scheduled, unix_timestamp(NOW()) created_time, NULL modified_time, wh_etl_exec_id
           FROM stg_flow s
-          WHERE s.app_id = {app_id} and flow_id is not null
+          WHERE s.app_id = {app_id}
           ON DUPLICATE KEY UPDATE
           flow_name = s.flow_name,
           flow_group = s.flow_group,
@@ -69,7 +69,7 @@ class SchedulerLoad:
             LEFT JOIN stg_flow_job s
             ON j.app_id = s.app_id AND j.job_id = s.job_id
             SET j.is_current = 'N'
-            WHERE (s.job_id IS NULL OR s.dag_version > j.dag_version) AND j.app_id = {app_id} AND s.job_id is not null
+            WHERE (s.job_id IS NULL OR s.dag_version > j.dag_version) AND j.app_id = {app_id}
             """.format(app_id=self.app_id)
     self.logger.debug(cmd)
     self.wh_cursor.execute(cmd)
@@ -77,11 +77,11 @@ class SchedulerLoad:
 
     cmd = """
           INSERT INTO flow_job (app_id, flow_id, first_source_version, dag_version, job_id, job_name, job_path, job_type_id, job_type, ref_flow_id, pre_jobs, post_jobs,
-          is_current, is_first, is_last, created_time, modified_time, wh_etl_exec_id,AdditionalInfo)
+          is_current, is_first, is_last, created_time, modified_time, wh_etl_exec_id)
           SELECT app_id, flow_id, source_version first_source_version, dag_version, job_id, job_name, job_path, job_type_id, job_type, ref_flow_id, pre_jobs, post_jobs,
-          'Y', is_first, is_last, unix_timestamp(NOW()) created_time, NULL, wh_etl_exec_id,AdditionalInfo
+          'Y', is_first, is_last, unix_timestamp(NOW()) created_time, NULL, wh_etl_exec_id
           FROM stg_flow_job s
-          WHERE s.app_id = {app_id} and flow_id is not null and s.job_id is not null and  dag_version is not null
+          WHERE s.app_id = {app_id}
           ON DUPLICATE KEY UPDATE
           flow_id = s.flow_id,
           last_source_version = case when s.source_version = first_source_version and last_source_version is NULL then NULL else s.source_version end,
@@ -96,8 +96,7 @@ class SchedulerLoad:
           is_first = s.is_first,
           is_last = s.is_last,
           modified_time = unix_timestamp(NOW()),
-          wh_etl_exec_id = s.wh_etl_exec_id,
-          AdditionalInfo = s.AdditionalInfo
+          wh_etl_exec_id = s.wh_etl_exec_id
           """.format(app_id=self.app_id)
     self.logger.debug(cmd)
     self.wh_cursor.execute(cmd)

@@ -22,7 +22,7 @@ import time
 class ElasticSearchIndex():
     def __init__(self, args):
         self.logger = LoggerFactory.getLogger('jython script : ' + self.__class__.__name__)
-        self.elasticsearch_index_url = args[Constant.ELASTICSEARCH_URL_KEY]
+        self.elasticsearch_server_url = args[Constant.ELASTICSEARCH_URL_KEY]
         self.elasticsearch_port = args[Constant.ELASTICSEARCH_PORT_KEY]
 
         if Constant.ELASTICSEARCH_INDEX_KEY not in args:
@@ -37,7 +37,7 @@ class ElasticSearchIndex():
         self.max_retry_times = int(args[Constant.WH_DB_MAX_RETRY_TIMES]) # max times for db re-connection when lost during fetching source data
 
 
-        self.base_url = self.elasticsearch_index_url + ':' + str(self.elasticsearch_port) + '/'
+        self.base_url = self.elasticsearch_server_url + ':' + str(self.elasticsearch_port) + '/'
         self.logger.info(self.base_url)
 
         self.old_index = []
@@ -72,19 +72,22 @@ class ElasticSearchIndex():
     def update_dataset_field(self, last_time=None):
         if last_time:
             sql = """
-            SELECT * FROM dict_field_detail WHERE modified >= DATE_SUB(%s, INTERVAL 1 HOUR)
+            SELECT fd.*, d.db_id, d.category FROM dict_field_detail fd
+            INNER JOIN dict_dataset d ON fd.dataset_id = d.id 
+            WHERE fd.modified >= DATE_SUB(%s, INTERVAL 1 HOUR)
             """ % last_time
         else:
             sql = """
-            SELECT * FROM dict_field_detail
+            SELECT fd.*, d.db_id, d.category FROM dict_field_detail fd
+            INNER JOIN dict_dataset d ON fd.dataset_id = d.id
           """
 
         comment_query = """
         SELECT d.field_id, d.dataset_id, f.comment FROM dict_dataset_field_comment d
         LEFT JOIN field_comments f ON d.comment_id = f.id WHERE d.field_id = %d
         """
-        url = self.elasticsearch_index_url + ':' + str(
-            self.elasticsearch_port) + '/' + self.elasticsearch_index + '/field/_bulk'
+        url = self.elasticsearch_server_url + ':' + str(
+            self.elasticsearch_port) + '/' + self.new_index + '/field/_bulk'
         params = []
         attempts = 0
         while attempts < self.max_retry_times:
@@ -149,8 +152,8 @@ class ElasticSearchIndex():
           SELECT * FROM comments
           """
 
-        url = self.elasticsearch_index_url + ':' + str(
-            self.elasticsearch_port) + '/' + self.elasticsearch_index + '/comment/_bulk'
+        url = self.elasticsearch_server_url + ':' + str(
+            self.elasticsearch_port) + '/' + self.new_index + '/comment/_bulk'
         params = []
         self.wh_cursor.execute(sql)
         row_count = 1
@@ -195,51 +198,21 @@ class ElasticSearchIndex():
           """ % last_unixtime
         else:
             sql = """
-          INSERT IGNORE INTO cfg_search_score_boost
+         
+        INSERT IGNORE INTO cfg_search_score_boost
           (id, static_boosting_score)
-          SELECT id, 80 FROM dict_dataset
-          WHERE urn like "kafka:///%"
-             or urn like "oracle:///%"
-             or urn like "espresso:///%"
+          SELECT id, 50 FROM dict_dataset
+          WHERE category = 'reference'
           ON DUPLICATE KEY UPDATE
-          static_boosting_score = 80;
-
-
-          INSERT IGNORE INTO cfg_search_score_boost
+          static_boosting_score = 50;
+          
+        INSERT IGNORE INTO cfg_search_score_boost
           (id, static_boosting_score)
-          SELECT id, 75 FROM dict_dataset
-          WHERE urn like "dalids:///%"
+          SELECT id, 25 FROM dict_dataset
+          WHERE category = 'raw'
           ON DUPLICATE KEY UPDATE
-          static_boosting_score = 75;
-
-
-          INSERT IGNORE INTO cfg_search_score_boost
-          (id, static_boosting_score)
-          SELECT id, 70 FROM dict_dataset
-          WHERE urn like "hdfs:///data/tracking/%"
-             or urn like "hdfs:///data/databases/%"
-             or urn like "hive:///tracking/%"
-             or urn like "hive:///prod_%/%"
-          ON DUPLICATE KEY UPDATE
-          static_boosting_score = 70;
-
-
-          INSERT IGNORE INTO cfg_search_score_boost
-          (id, static_boosting_score)
-          SELECT id, 65 FROM dict_dataset
-          WHERE urn like "hdfs:///data/external/%"
-             or urn like "hdfs:///data/derived/%"
-             or urn like "hdfs:///data/foundation/%"
-             or urn like "hive:///hirein/%"
-             or urn like "hive:///rightnow/%"
-             or urn like "hive:///lla/%"
-             or urn like "hive:///append_rightnow/%"
-             or urn like "hive:///decipher/%"
-             or urn like "hive:///timeforce/%"
-             or urn like "hive:///jira/%"
-             or urn like "hive:///teleopti/%"
-          ON DUPLICATE KEY UPDATE
-          static_boosting_score = 65;
+          static_boosting_score = 25;
+          
 
           SELECT d.*,
               COALESCE(s.static_boosting_score,1) as static_boosting_score
@@ -257,8 +230,8 @@ class ElasticSearchIndex():
         row_count = 1
         result = self.wh_cursor.fetchone()
 
-        url = self.elasticsearch_index_url + ':' + str(
-            self.elasticsearch_port) + '/' + self.elasticsearch_index + '/dataset/_bulk'
+        url = self.elasticsearch_server_url + ':' + str(
+            self.elasticsearch_port) + '/' + self.new_index + '/dataset/_bulk'
         params = []
         while result:
             row = dict(zip(description, result))
@@ -277,7 +250,9 @@ class ElasticSearchIndex():
                 'schema': row['schema'],
                 'fields': row['fields'],
                 'static_boosting_score': row['static_boosting_score'],
-                'name_suggest': name_suggest_info
+                'name_suggest': name_suggest_info,
+                'db_id': row['db_id'],
+                'category': row['category']
             }
 
             params.append('{ "index": { "_id": ' + str(row['id']) + ' }}')
@@ -303,8 +278,8 @@ class ElasticSearchIndex():
         SELECT * FROM dict_business_metric
         """
 
-        url = self.elasticsearch_index_url + ':' + str(
-            self.elasticsearch_port) + '/' + self.elasticsearch_index + '/metric/_bulk'
+        url = self.elasticsearch_server_url + ':' + str(
+            self.elasticsearch_port) + '/' + self.new_index + '/metric/_bulk'
         params = []
         self.wh_cursor.execute(sql)
         description = [x[0] for x in self.wh_cursor.description]
@@ -375,8 +350,8 @@ class ElasticSearchIndex():
         SELECT * FROM flow_job WHERE app_id = %d and flow_id = %d
         """
 
-        url = self.elasticsearch_index_url + ':' + str(
-            self.elasticsearch_port) + '/' + self.elasticsearch_index + '/flow_jobs/_bulk'
+        url = self.elasticsearch_server_url + ':' + str(
+            self.elasticsearch_port) + '/' + self.new_index + '/flow_jobs/_bulk'
 
         params = []
         self.wh_cursor.execute(flow_sql)
@@ -488,6 +463,8 @@ class ElasticSearchIndex():
 
         except Exception as e:
             self.logger.error(str(e))
+            sys.exit("Error in re-indexing, the old index stays active")
+
         finally:
             self.wh_cursor.close()
             self.wh_con.close()
@@ -512,19 +489,25 @@ class ElasticSearchIndex():
             self.logger.error(str(e))
 
     def create_index(self):
-        now = int(time.time())
-        url = self.base_url + str(now)
+        try:
+            now = int(time.time())
+            url = self.base_url + str(now)
 
-        json_filepath = self.index_mapping_file
-        with open(json_filepath, 'r') as f:
-            req_body = json.load(f)
+            json_filepath = self.index_mapping_file
+            with open(json_filepath, 'r') as f:
+                req_body = json.load(f)
 
-        data = self.es_http_request("PUT", url, json.dumps(req_body))
-        if str(data['acknowledged']) != 'True':
-            self.logger.error(str(data))
+            data = self.es_http_request("PUT", url, json.dumps(req_body))
+            if str(data['acknowledged']) != 'True':
+                self.logger.error(str(data))
+                sys.exit("Error in create_index")
 
-        self.new_index = str(now)
-        self.logger.info('Successfully created index : {}'.format(self.new_index))
+            self.new_index = str(now)
+            self.logger.info('Successfully created index : {}'.format(self.new_index))
+
+        except Exception as e:
+            self.logger.error(str(e))
+            sys.exit("Error in create_index")
 
     def alias_switch(self):
         url = self.base_url + '_aliases'
@@ -570,7 +553,6 @@ class ElasticSearchIndex():
         if str(data['acknowledged']) != 'True':
             self.logger.error(str(data))
         self.logger.info('Successfully removed index: {}'.format(self.old_index))
-
 
     def run(self):
         try:

@@ -34,8 +34,10 @@ interface INotificationHandlerTrap<T, K extends keyof T> {
 
 /**
  * Describes the interface for a confirmation modal object
+ * @export
+ * @interface IConfirmOptions
  */
-interface IConfirmOptions {
+export interface IConfirmOptions {
   header: string;
   content: string;
   dismissButtonText?: string;
@@ -263,12 +265,11 @@ export default class Notifications extends Service {
      */
     setCurrentNotification = async (notification: INotification) => {
       if (notification.type === 'modal') {
-        setProperties(this, { modal: notification, isShowingModal: true });
+        setProperties<Notifications, 'modal' | 'isShowingModal'>(this, { modal: notification, isShowingModal: true });
       } else {
         const { props } = notification;
         const toastDelay = delay((<IToast>props).duration);
-
-        setProperties(this, { toast: notification, isShowingToast: true });
+        setProperties<Notifications, 'toast' | 'isShowingToast'>(this, { toast: notification, isShowingToast: true });
 
         if (!(<IToast>props).isSticky) {
           await toastDelay;
@@ -285,7 +286,7 @@ export default class Notifications extends Service {
    * @param {NotificationEvent} type
    * @param params optional list of parameters for the notification handler
    */
-  notify(type: NotificationEvent, ...params: any[]): void {
+  notify(type: NotificationEvent, ...params: Array<IConfirmOptions | IToast>): void {
     if (!(type in proxiedNotifications)) {
       return;
     }

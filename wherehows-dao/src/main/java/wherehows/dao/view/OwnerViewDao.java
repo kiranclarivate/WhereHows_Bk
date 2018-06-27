@@ -16,6 +16,8 @@ package wherehows.dao.view;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.persistence.EntityManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +25,6 @@ import wherehows.models.view.DatasetOwner;
 
 
 public class OwnerViewDao extends BaseViewDao {
-
-  private static final Logger log = LoggerFactory.getLogger(OwnerViewDao.class);
 
   public OwnerViewDao(EntityManagerFactory factory) {
     super(factory);
@@ -43,7 +43,8 @@ public class OwnerViewDao extends BaseViewDao {
    * @param datasetUrn String
    * @return List of DatasetOwner
    */
-  public List<DatasetOwner> getDatasetOwnersByUrn(String datasetUrn) {
+  @Nullable
+  public List<DatasetOwner> getDatasetOwnersByUrn(@Nonnull String datasetUrn) throws Exception {
     Map<String, Object> params = new HashMap<>();
     params.put("datasetUrn", datasetUrn);
 
@@ -52,5 +53,10 @@ public class OwnerViewDao extends BaseViewDao {
       owner.setModifiedTime(owner.getModifiedTime() * 1000);
     }
     return owners;
+  }
+
+  @Nullable
+  public List<DatasetOwner> getDatasetOwners(@Nonnull String datasetUrn) throws Exception {
+    throw new UnsupportedOperationException("Not implemented yet");
   }
 }

@@ -1,11 +1,11 @@
 import { test } from 'qunit';
 import moduleForAcceptance from 'wherehows-web/tests/helpers/module-for-acceptance';
+import { visit, click, find, fillIn, currentURL } from 'ember-native-dom-helpers';
 import {
   loginContainer,
   authenticationUrl,
   invalidCredentials,
   testUser,
-  testPassword,
   testPasswordInvalid
 } from 'wherehows-web/tests/helpers/login/constants';
 import {
@@ -30,49 +30,38 @@ test('should render login form', function(assert) {
   assert.expect(4);
 
   andThen(() => {
-    assert.equal(find(loginContainer).length, 1, 'should have a login form container');
-    assert.equal(find('input[type=text]', loginContainer).length, 1, 'should have a username text input field');
-    assert.equal(find('input[type=password]', loginContainer).length, 1, 'should have a password text input field');
-    assert.equal(find('button[type=submit]', loginContainer).length, 1, 'should have a submit button');
+    assert.ok(find(loginContainer), 'should have a login form container');
+    assert.ok(find('input[type=text]', loginContainer), 'should have a username text input field');
+    assert.ok(find('input[type=password]', loginContainer), 'should have a password text input field');
+    assert.ok(find('button[type=submit]', loginContainer), 'should have a submit button');
   });
 });
 
 test('should display error message with empty credentials', async function(assert) {
   assert.expect(2);
   await fillIn(loginUserInput, testUser);
-  await click('button[type=submit]');
-
-  assert.ok(find('#login-error').text().length, 'error message element is rendered');
-
-  assert.equal(
-    find('#login-error')
-      .text()
-      .trim(),
-    invalidCredentials
-  );
-});
-
-test('Login with an empty password', async function(assert) {
-  await fillIn(loginUserInput, testUser);
   await click(loginSubmitButton);
 
+  assert.ok(find('#login-error').textContent.length, 'error message element is rendered');
+
   assert.equal(
-    find('#login-error')
-      .text()
-      .trim(),
-    invalidCredentials
+    find('#login-error').textContent.trim(),
+    invalidCredentials,
+    'displays missing or invalid credentials message'
   );
 });
 
-test('Login with an invalid password', async function(assert) {
+test('should display invalid password message with invalid password entered', async function(assert) {
+  assert.expect(2);
   await fillIn(loginUserInput, testUser);
   await fillIn(loginPasswordInput, testPasswordInvalid);
   await click(loginSubmitButton);
 
+  assert.ok(find('#login-error').textContent.length, 'error message element is rendered');
+
   assert.equal(
-    find('#login-error')
-      .text()
-      .trim(),
-    'Invalid Password'
+    find('#login-error').textContent.trim(),
+    'Invalid Password',
+    'displays invalid password message in error message container'
   );
 });

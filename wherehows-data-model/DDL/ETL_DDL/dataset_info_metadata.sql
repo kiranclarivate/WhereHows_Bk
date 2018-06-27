@@ -104,7 +104,7 @@ CREATE TABLE dataset_partition (
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = latin1;
-
+/*
 CREATE TABLE `dataset_compliance` (
   `dataset_id`                INT(10) UNSIGNED NOT NULL,
   `dataset_urn`               VARCHAR(500)     NOT NULL,
@@ -127,6 +127,35 @@ CREATE TABLE `dataset_compliance` (
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = latin1;
+*/
+
+CREATE TABLE `dataset_compliance` (
+  `dataset_id` int(10) unsigned NOT NULL,
+  `dataset_urn` varchar(200) NOT NULL,
+  `compliance_purge_type` varchar(30) DEFAULT NULL 
+  COMMENT 'AUTO_PURGE,CUSTOM_PURGE,LIMITED_RETENTION,PURGE_NOT_APPLICABLE',
+  `compliance_purge_note` mediumtext 
+  COMMENT 'The additional information about purging if the purge type is PURGE_EXEMPTED',
+  `compliance_entities` mediumtext 
+  COMMENT 'JSON: compliance fields',
+  `confidentiality` varchar(50) DEFAULT NULL 
+  COMMENT 'dataset level confidential category: confidential, highly confidential, etc',
+  `dataset_classification` varchar(1000) DEFAULT NULL 
+  COMMENT 'JSON: dataset level confidential classification',
+  `field_classification` mediumtext 
+  COMMENT 'JSON: field level confidential classification',
+  `record_owner_type` varchar(50) DEFAULT NULL 
+  COMMENT 'MEMBER,CUSTOMER,INTERNAL,COMPANY,GROUP',
+  `retention_policy` varchar(200) DEFAULT NULL 
+  COMMENT 'JSON: specification of retention',
+  `geographic_affinity` varchar(500) DEFAULT NULL 
+  COMMENT 'JSON: must be stored in the geo region',
+  `modified_by` varchar(50) DEFAULT NULL COMMENT 'last modified by',
+  `modified_time` int(10) unsigned DEFAULT NULL COMMENT 'the modified time in epoch',
+  PRIMARY KEY (`dataset_id`),
+  UNIQUE KEY `dataset_urn` (`dataset_urn`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 CREATE TABLE dataset_constraint (
   `dataset_id`            INT UNSIGNED NOT NULL,

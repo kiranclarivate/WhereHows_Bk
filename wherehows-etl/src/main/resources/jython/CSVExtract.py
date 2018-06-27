@@ -112,10 +112,8 @@ class CSVExtract:
             
             mydict = dict(zip(fields,row))
             rowDict["app_id"] = "103"
-            
             for field in fields:
               if field == 'flow_name / schedule name' and mydict[field]:
-                
                                  
                 flow_path = app_name+":"+mydict[field]
                 rowDict["flow_path"] = flow_path
@@ -123,24 +121,18 @@ class CSVExtract:
               if field == 'Job Name' and mydict["flow_name / schedule name"]:
               
               	if mydict["flow_name / schedule name"] in flowDict:
-                  print("in id:: " + mydict["flow_name / schedule name"] )
                   flowDict[mydict["flow_name / schedule name"]] += 1
                   number = flowDict[mydict["flow_name / schedule name"]]
-                  print( number )
+                  
                           
                 else:
-                  print(mydict["flow_name / schedule name"])
                   flowDict[mydict["flow_name / schedule name"]]=0
                   number = 0
                   
                 job_path = app_name+":"+mydict["flow_name / schedule name"]+"/"+mydict[field].strip()
                 rowDict["job_name"] = mydict[field].strip()
                 rowDict["job_path"] = job_path
-                print(mydict[field].strip())
-                print(number)
                 rowDict["source_version"] = number
-             
-             	
               elif field not in( 'flow_name / schedule name','Job Name','Dependencies') and mydict["flow_name / schedule name"]:
                 jsonDict[field] = mydict[field]
                 rowDict["AdditionalInfo"] = json.dumps(jsonDict)
@@ -181,15 +173,15 @@ class CSVExtract:
                 
                 for field in fields:
                     if field == 'flow_name / schedule name' and  mydict[field]:
-                    	
 
-                                              
+
+                        
                         if mydict[field] in flowDict:
                           flowDict[mydict[field]] += 1
                           number = flowDict[mydict[field]]
                           
                         else:
-                          flowDict[mydict[field]] = 0
+                          flowDict[mydict[field]]=0
                           number = 0
                                                
                         flow_path = app_name+":"+mydict["flow_name / schedule name"]

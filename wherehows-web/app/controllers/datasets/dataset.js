@@ -1,4 +1,9 @@
-import Ember from 'ember';
+import Controller from '@ember/controller';
+import { computed, set, get, setProperties, getProperties, getWithDefault } from '@ember/object';
+import { debug } from '@ember/debug';
+import { inject as service } from '@ember/service';
+import { run, scheduleOnce } from '@ember/runloop';
+import $ from 'jquery';
 import {
   datasetComplianceUrlById,
   createDatasetComment,
@@ -8,25 +13,14 @@ import {
 } from 'wherehows-web/utils/api';
 import { updateDatasetDeprecation } from 'wherehows-web/utils/api/datasets/properties';
 import { readDatasetView } from 'wherehows-web/utils/api/datasets/dataset';
+import { readDatasetOwners, updateDatasetOwners } from 'wherehows-web/utils/api/datasets/owners';
+import { Tabs } from 'wherehows-web/constants/datasets/shared';
+import { action } from 'ember-decorators/object';
 
-const {
-  set,
-  get,
-  getProperties,
-  debug,
-  getWithDefault,
-  setProperties,
-  inject: { service },
-  $: { post, getJSON },
-  Controller
-} = Ember;
+const { post, getJSON } = $;
 
-// TODO: DSS-6581 Create URL retrieval module
-const datasetsUrlRoot = '/api/v1/datasets';
-const datasetUrl = id => `${datasetsUrlRoot}/${id}`;
-const getDatasetOwnersUrl = id => `${datasetUrl(id)}/owners`;
-
-export default Controller.extend({
+// gradual refactor into es class, hence extends EmberObject instance
+export default class extends Controller.extend({
   queryParams: ['urn'],
   /**
    * Reference to the application notifications Service
@@ -39,9 +33,18 @@ export default Controller.extend({
   hasSamples: false,
   currentVersion: '0',
   latestVersion: '0',
-  ownerTypes: [],
-  userTypes: [{ name: 'Corporate User', value: 'urn:li:corpuser' }, { name: 'Group User', value: 'urn:li:corpGroup' }],
-  isPinot: function() {
+  init() {
+    setProperties(this, {
+      ownerTypes: [],
+      userTypes: [
+        { name: 'Corporate User', value: 'urn:li:corpuser' },
+        { name: 'Group User', value: 'urn:li:corpGroup' }
+      ]
+    });
+
+    this._super(...arguments);
+  },
+  isPinot: computed('model.source', function() {
     var model = this.get('model');
     if (model) {
       if (model.source) {
@@ -49,8 +52,8 @@ export default Controller.extend({
       }
     }
     return false;
-  }.property('model.source'),
-  isHDFS: function() {
+  }),
+  isHDFS: computed('model.urn', function() {
     var model = this.get('model');
     if (model) {
       if (model.urn) {
@@ -58,8 +61,8 @@ export default Controller.extend({
       }
     }
     return false;
-  }.property('model.urn'),
-  isSFDC: function() {
+  }),
+  isSFDC: computed('model.source', function() {
     var model = this.get('model');
     if (model) {
       if (model.source) {
@@ -67,8 +70,8 @@ export default Controller.extend({
       }
     }
     return false;
-  }.property('model.source'),
-  lineageUrl: function() {
+  }),
+  lineageUrl: computed('model.id', function() {
     var model = this.get('model');
     if (model) {
       if (model.id) {
@@ -76,8 +79,8 @@ export default Controller.extend({
       }
     }
     return '';
-  }.property('model.id'),
-  schemaHistoryUrl: function() {
+  }),
+  schemaHistoryUrl: computed('model.id', function() {
     var model = this.get('model');
     if (model) {
       if (model.id) {
@@ -85,7 +88,7 @@ export default Controller.extend({
       }
     }
     return '';
-  }.property('model.id'),
+  }),
 
   refreshVersions: function(dbId) {
     var model = this.get('model');
@@ -204,8 +207,8 @@ export default Controller.extend({
   actions: {
     /**
      * Updates the dataset's deprecation properties
-     * @param {boolean} isDeprecated 
-     * @param {string} deprecationNote 
+     * @param {boolean} isDeprecated
+     * @param {string} deprecationNote
      * @return {IDatasetView}
      */
     async updateDeprecation(isDeprecated, deprecationNote) {
@@ -245,32 +248,27 @@ export default Controller.extend({
     },
 
     /**
-     * Takes the list up updated owner and posts to the server
-     * @param {Ember.Array} updatedOwners the list of owner to send
-     * @returns {Promise.<T>}
+     * Persists the list of owners, and if successful, updated the owners
+     * on the controller
+     * @param {Array<IOwner>} updatedOwners the list of owner to send
+     * @returns {Promise<Array<IOwner>>}
      */
-    saveOwnerChanges(updatedOwners) {
-      const datasetId = get(this, 'model.id');
+    async saveOwnerChanges(updatedOwners) {
+      const { datasetId: id, 'notifications.notify': notify } = getProperties(this, [
+        'datasetId',
+        'notifications.notify'
+      ]);
       const csrfToken = getWithDefault(this, 'csrfToken', '').replace('/', '');
 
-      return Promise.resolve(
-        post({
-          url: getDatasetOwnersUrl(datasetId),
-          headers: {
-            'Csrf-Token': csrfToken
-          },
-          data: {
-            csrfToken,
-            owners: JSON.stringify(updatedOwners)
-          }
-        }).then(({ status = 'failed', msg = 'An error occurred.' }) => {
-          if (['success', 'ok'].includes(status)) {
-            return { status: 'ok' };
-          }
+      try {
+        await updateDatasetOwners(id, csrfToken, updatedOwners);
+        notify('success', { content: 'Success!' });
 
-          Promise.reject({ status, msg });
-        })
-      );
+        // updates the shared state for list of dataset owners
+        return set(this, 'owners', await readDatasetOwners(id));
+      } catch (e) {
+        notify('error', { content: e.message });
+      }
     },
 
     updateVersion: function(version) {
@@ -325,4 +323,25 @@ export default Controller.extend({
         .catch(this.exceptionOnSave);
     }
   }
-});
+}) {
+  tabIds = Tabs;
+
+  tabSelected;
+
+  constructor() {
+    super();
+    this.tabSelected || (this.tabSelected = Tabs.Ownership);
+  }
+
+  /**
+   * Handles user generated tab selection action by transitioning to specified route
+   * @param {Tabs} tabSelected the currently selected tab
+   */
+  @action
+  tabSelectionChanged(tabSelected) {
+    // if the tab selection is same as current, noop
+    return get(this, 'tabSelected') === tabSelected
+      ? void 0
+      : this.transitionToRoute(`datasets.dataset.${tabSelected}`, get(this, 'datasetId'));
+  }
+}

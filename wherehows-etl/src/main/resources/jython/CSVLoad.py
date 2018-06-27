@@ -238,7 +238,6 @@ class SchedulerTransform:
     self.logger.debug(query)
     self.wh_cursor.execute(query)
     self.wh_con.commit()
-    
 
   def read_dag_file_to_stg(self):
     t = self._tables["dags"]

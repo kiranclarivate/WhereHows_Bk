@@ -53,10 +53,11 @@ class TableInfo:
 
   field_list = 'fields'
   schema_literal = 'schema_literal'
+  category = 'category'
 
   optional_prop = [create_time, serialization_format, field_delimiter, schema_url, db_id, table_id, serde_id,
                    table_type, location, view_expended_text, input_format, output_format, is_compressed,
-                   is_storedassubdirectories, etl_source]
+                   is_storedassubdirectories, etl_source, category]
 
 
 class HiveExtract:
@@ -91,6 +92,14 @@ class HiveExtract:
     if Constant.KERBEROS_AUTH_KEY in args:
       kerberos_auth = FileUtil.parse_bool(args[Constant.KERBEROS_AUTH_KEY], False)
 
+    self.table_whitelist_enabled = False
+    if Constant.HIVE_TABLE_WHITELIST_ENABLED in args:
+      self.table_whitelist_enabled = FileUtil.parse_bool(args[Constant.HIVE_TABLE_WHITELIST_ENABLED], False)
+
+    self.table_blacklist_enabled = False
+    if Constant.HIVE_TABLE_BLACKLIST_ENABLED in args:
+      self.table_blacklist_enabled = FileUtil.parse_bool(args[Constant.HIVE_TABLE_BLACKLIST_ENABLED], False)
+
     self.schema_url_helper = SchemaUrlHelper.SchemaUrlHelper(hdfs_namenode_ipc_uri, kerberos_auth, kerberos_principal, keytab_file)
 
     # global variables
@@ -105,7 +114,6 @@ class HiveExtract:
     self.hdfs_count = 0
     self.schema_registry_count = 0
 
-
   def get_table_info_from_v2(self, database_name, is_dali=False):
     """
     get table, column info from table columns_v2
@@ -115,7 +123,7 @@ class HiveExtract:
     4 DB_ID, 5 TBL_ID,6 SD_ID, 7 LOCATION, 8 TBL_TYPE, 9 VIEW_EXPENDED_TEXT, 10 INPUT_FORMAT,11  OUTPUT_FORMAT,
     12 IS_COMPRESSED, 13 IS_STOREDASSUBDIRECTORIES, 14 INTEGER_IDX, 15 COLUMN_NAME, 16 TYPE_NAME, 17 COMMENT
     18 dataset_name, 19 version, 20 TYPE, 21 storage_type, 22 native_name, 23 logical_name, 24 created_time,
-    25 dataset_urn, 26 source_modified_time)
+    25 dataset_urn, 26 source_modified_time, 27 category)
     """
     if is_dali:
       tbl_info_sql = """SELECT d.NAME DB_NAME, t.TBL_NAME TBL_NAME,
@@ -144,15 +152,78 @@ class HiveExtract:
           then substring(t.TBL_NAME, 1, length(t.TBL_NAME) - length(substring_index(t.TBL_NAME, '_', -3)) - 1)
           else t.TBL_NAME
         end logical_name, unix_timestamp(now()) created_time, concat('dalids:///', d.NAME, '/', t.TBL_NAME) dataset_urn,
-        p.PARAM_VALUE source_modified_time
+        p.PARAM_VALUE source_modified_time, category.PARAM_VALUE as category
       FROM TBLS t join DBS d on t.DB_ID=d.DB_ID
       JOIN SDS s on t.SD_ID = s.SD_ID
       JOIN COLUMNS_V2 c on s.CD_ID = c.CD_ID
       JOIN TABLE_PARAMS p on p.TBL_ID = t.TBL_ID
+      LEFT JOIN (select TBL_ID, PARAM_VALUE FROM TABLE_PARAMS WHERE PARAM_KEY = 'whcategory') category ON  t.TBL_ID = category.TBL_ID
       WHERE p.PARAM_KEY = 'transient_lastDdlTime' and
         d.NAME in ('{db_name}') and (d.NAME like '%\_mp' or d.NAME like '%\_mp\_versioned') and d.NAME not like 'dalitest%' and t.TBL_TYPE = 'VIRTUAL_VIEW'
       order by DB_NAME, dataset_name, version DESC
       """.format(version='{version}', db_name=database_name)
+    elif self.table_whitelist_enabled:
+      tbl_info_sql = """SELECT d.NAME DB_NAME, t.TBL_NAME TBL_NAME,
+        case when s.INPUT_FORMAT like '%.TextInput%' then 'Text'
+          when s.INPUT_FORMAT like '%.Avro%' then 'Avro'
+          when s.INPUT_FORMAT like '%.RCFile%' then 'RC'
+          when s.INPUT_FORMAT like '%.Orc%' then 'ORC'
+          when s.INPUT_FORMAT like '%.Sequence%' then 'Sequence'
+          when s.INPUT_FORMAT like '%.Parquet%' then 'Parquet'
+          else s.INPUT_FORMAT
+        end SerializationFormat,
+        t.CREATE_TIME TableCreateTime,
+        t.DB_ID, t.TBL_ID, s.SD_ID,
+        substr(s.LOCATION, length(substring_index(s.LOCATION, '/', 3))+1) Location,
+        t.TBL_TYPE, t.VIEW_EXPANDED_TEXT, s.INPUT_FORMAT, s.OUTPUT_FORMAT, s.IS_COMPRESSED, s.IS_STOREDASSUBDIRECTORIES,
+        c.INTEGER_IDX, c.COLUMN_NAME, c.TYPE_NAME, c.COMMENT, t.TBL_NAME dataset_name, 0 version, 'Hive' TYPE,
+        case when LOCATE('view', LOWER(t.TBL_TYPE)) > 0 then 'View'
+          when LOCATE('index', LOWER(t.TBL_TYPE)) > 0 then 'Index'
+          else 'Table'
+        end storage_type, concat(d.NAME, '.', t.TBL_NAME) native_name, t.TBL_NAME logical_name,
+        unix_timestamp(now()) created_time, concat('hive:///', d.NAME, '/', t.TBL_NAME) dataset_urn,
+        p.PARAM_VALUE source_modified_time, category.PARAM_VALUE as category
+      FROM TBLS t join DBS d on t.DB_ID=d.DB_ID
+      JOIN SDS s on t.SD_ID = s.SD_ID
+      JOIN COLUMNS_V2 c on s.CD_ID = c.CD_ID
+      JOIN TABLE_PARAMS p on p.TBL_ID = t.TBL_ID
+      LEFT JOIN (select TBL_ID, PARAM_VALUE FROM TABLE_PARAMS WHERE PARAM_KEY = 'whcategory') category ON  t.TBL_ID = category.TBL_ID
+      WHERE p.PARAM_KEY = 'transient_lastDdlTime' and
+        t.TBL_ID in (select distinct TBL_ID FROM TABLE_PARAMS where PARAM_KEY='wherehows' AND PARAM_VALUE='true') and
+        d.NAME in ('{db_name}') and not ((d.NAME like '%\_mp' or d.NAME like '%\_mp\_versioned') and t.TBL_TYPE = 'VIRTUAL_VIEW')
+      order by 1,2
+      """.format(db_name=database_name)
+    elif self.table_blacklist_enabled:
+      tbl_info_sql = """SELECT d.NAME DB_NAME, t.TBL_NAME TBL_NAME,
+        case when s.INPUT_FORMAT like '%.TextInput%' then 'Text'
+          when s.INPUT_FORMAT like '%.Avro%' then 'Avro'
+          when s.INPUT_FORMAT like '%.RCFile%' then 'RC'
+          when s.INPUT_FORMAT like '%.Orc%' then 'ORC'
+          when s.INPUT_FORMAT like '%.Sequence%' then 'Sequence'
+          when s.INPUT_FORMAT like '%.Parquet%' then 'Parquet'
+          else s.INPUT_FORMAT
+        end SerializationFormat,
+        t.CREATE_TIME TableCreateTime,
+        t.DB_ID, t.TBL_ID, s.SD_ID,
+        substr(s.LOCATION, length(substring_index(s.LOCATION, '/', 3))+1) Location,
+        t.TBL_TYPE, t.VIEW_EXPANDED_TEXT, s.INPUT_FORMAT, s.OUTPUT_FORMAT, s.IS_COMPRESSED, s.IS_STOREDASSUBDIRECTORIES,
+        c.INTEGER_IDX, c.COLUMN_NAME, c.TYPE_NAME, c.COMMENT, t.TBL_NAME dataset_name, 0 version, 'Hive' TYPE,
+        case when LOCATE('view', LOWER(t.TBL_TYPE)) > 0 then 'View'
+          when LOCATE('index', LOWER(t.TBL_TYPE)) > 0 then 'Index'
+          else 'Table'
+        end storage_type, concat(d.NAME, '.', t.TBL_NAME) native_name, t.TBL_NAME logical_name,
+        unix_timestamp(now()) created_time, concat('hive:///', d.NAME, '/', t.TBL_NAME) dataset_urn,
+        p.PARAM_VALUE source_modified_time, category.PARAM_VALUE as category
+      FROM TBLS t join DBS d on t.DB_ID=d.DB_ID
+      JOIN SDS s on t.SD_ID = s.SD_ID
+      JOIN COLUMNS_V2 c on s.CD_ID = c.CD_ID
+      JOIN TABLE_PARAMS p on p.TBL_ID = t.TBL_ID
+      LEFT JOIN (select TBL_ID, PARAM_VALUE FROM TABLE_PARAMS WHERE PARAM_KEY = 'whcategory') category ON  t.TBL_ID = category.TBL_ID
+      WHERE p.PARAM_KEY = 'transient_lastDdlTime' and
+        t.TBL_ID NOT in (select distinct TBL_ID FROM TABLE_PARAMS where PARAM_KEY='wherehows' AND PARAM_VALUE='true') and
+        d.NAME in ('{db_name}') and not ((d.NAME like '%\_mp' or d.NAME like '%\_mp\_versioned') and t.TBL_TYPE = 'VIRTUAL_VIEW')
+      order by 1,2
+      """.format(db_name=database_name)
     else:
       tbl_info_sql = """SELECT d.NAME DB_NAME, t.TBL_NAME TBL_NAME,
         case when s.INPUT_FORMAT like '%.TextInput%' then 'Text'
@@ -173,11 +244,12 @@ class HiveExtract:
           else 'Table'
         end storage_type, concat(d.NAME, '.', t.TBL_NAME) native_name, t.TBL_NAME logical_name,
         unix_timestamp(now()) created_time, concat('hive:///', d.NAME, '/', t.TBL_NAME) dataset_urn,
-        p.PARAM_VALUE source_modified_time
+        p.PARAM_VALUE source_modified_time, category.PARAM_VALUE as category
       FROM TBLS t join DBS d on t.DB_ID=d.DB_ID
       JOIN SDS s on t.SD_ID = s.SD_ID
       JOIN COLUMNS_V2 c on s.CD_ID = c.CD_ID
       JOIN TABLE_PARAMS p on p.TBL_ID = t.TBL_ID
+      LEFT JOIN (select TBL_ID, PARAM_VALUE FROM TABLE_PARAMS WHERE PARAM_KEY = 'whcategory') category ON  t.TBL_ID = category.TBL_ID
       WHERE p.PARAM_KEY = 'transient_lastDdlTime' and
         d.NAME in ('{db_name}') and not ((d.NAME like '%\_mp' or d.NAME like '%\_mp\_versioned') and t.TBL_TYPE = 'VIRTUAL_VIEW')
       order by 1,2
@@ -258,6 +330,7 @@ class HiveExtract:
                         TableInfo.is_compressed: row_value[12],
                         TableInfo.is_storedassubdirectories: row_value[13],
                         TableInfo.etl_source: 'COLUMN_V2',
+                        TableInfo.category: row_value[27],
                         TableInfo.field_list: field_list[:]}
 
         field_list = [] # empty it
@@ -322,6 +395,7 @@ class HiveExtract:
          TableInfo.is_storedassubdirectories: row_value[13], TableInfo.etl_source: 'SERDE_PARAMS',
          TableInfo.schema_literal: literal,
          TableInfo.schema_url: row_value[15],
+         TableInfo.category: row_value[27],
          TableInfo.field_delimiter: row_value[16]})
       table_idx += 1
       self.table_dict[full_name] = table_idx

@@ -23,6 +23,7 @@ import wherehows.common.utils.StringUtil;
  */
 public class DatasetRecord extends AbstractRecord {
   Integer id;
+  Integer dbId = 0;
   String name;
   String schema;
   String schemaType;
@@ -52,6 +53,7 @@ public class DatasetRecord extends AbstractRecord {
   public List<Object> fillAllFields() {
     List<Object> allFields = new ArrayList<>();
     allFields.add(id);
+    allFields.add(dbId);
     allFields.add(name);
     allFields.add(schema);
     allFields.add(schemaType);
@@ -76,12 +78,14 @@ public class DatasetRecord extends AbstractRecord {
     allFields.add(System.currentTimeMillis()/1000);
     allFields.add(null);
     allFields.add(null);
+    allFields.add(null);
     return allFields;
   }
 
   public List<String> fillAllFieldNames() {
     List<String> allFieldNames = new ArrayList<>();
     allFieldNames.add("id");
+    allFieldNames.add("db_id");
     allFieldNames.add("name");
     allFieldNames.add("schema");
     allFieldNames.add("schema_type");
@@ -106,6 +110,7 @@ public class DatasetRecord extends AbstractRecord {
     allFieldNames.add("created_time");
     allFieldNames.add("modified_time");
     allFieldNames.add("wh_etl_exec_id");
+    allFieldNames.add("caregory");
     return allFieldNames;
   }
 
@@ -133,6 +138,12 @@ public class DatasetRecord extends AbstractRecord {
 
   public void setId(Integer id) {
     this.id = id;
+  }
+
+  public Integer getDbId() { return dbId; }
+
+  public void SetDbId (Integer dbId) {
+    this.dbId = dbId;
   }
 
   public String getName() {

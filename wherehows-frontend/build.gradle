@@ -32,6 +32,20 @@ model {
       }
     }
   }
+
+    distributions {
+        playBinary {
+            contents {
+                from("script") {
+                    into "bin"
+                }
+                from("../wherehows-data-model/ELASTICSEARCH") {
+                    into "ELASTICSEARCH"
+                }
+
+            }
+        }
+    }
 }
 
 task unzipAssets(type: Copy, dependsOn: configurations.assets) {
