@@ -123,21 +123,18 @@ class CSVExtract:
               if field == 'Job Name' and mydict["flow_name / schedule name"]:
               
               	if mydict["flow_name / schedule name"] in flowDict:
-                  print("in id:: " + mydict["flow_name / schedule name"] )
                   flowDict[mydict["flow_name / schedule name"]] += 1
                   number = flowDict[mydict["flow_name / schedule name"]]
-                  print( number )
+                  
                           
                 else:
-                  print(mydict["flow_name / schedule name"])
                   flowDict[mydict["flow_name / schedule name"]]=0
                   number = 0
                   
                 job_path = app_name+":"+mydict["flow_name / schedule name"]+"/"+mydict[field].strip()
                 rowDict["job_name"] = mydict[field].strip()
                 rowDict["job_path"] = job_path
-                print(mydict[field].strip())
-                print(number)
+               
                 rowDict["source_version"] = number
              
              	
@@ -364,6 +361,7 @@ class CSVExtract:
                 inputsSet = mydict['Inputs'].splitlines()
                 outputsSet = mydict['Outputs'].splitlines()
                 srl_no = 0
+                source_srl_no = 0
                 flow_exec_id +=1
                 job_exec_id +=1
                 
@@ -371,7 +369,8 @@ class CSVExtract:
                 job_path = app_name+":"+mydict["flow_name / schedule name"]+"/"+mydict['Job Name'].strip()
                 
                 for input in inputsSet:
-                  srl_no +=1                  
+                  srl_no +=1 
+                  source_srl_no+=1                 
                   operation = 'read'
                   source_target_type = 'source'
                   input = input.replace('"','')
@@ -392,6 +391,7 @@ class CSVExtract:
                   rowDict["storage_type"] = storage_type
                   rowDict["source_target_type"] = source_target_type
                   rowDict["srl_no"] = srl_no
+                  rowDict["source_srl_no"] = source_srl_no
                   rowDict["operation"] = operation
                   rowDict["flow_exec_id"] = flow_exec_id
                   rowDict["job_exec_id"] = job_exec_id
@@ -399,7 +399,8 @@ class CSVExtract:
                   writer.writerow(rowDict)
 
                 for output in outputsSet:
-                  srl_no +=1                  
+                  srl_no +=1
+                  source_srl_no+=1                  
                   operation = 'write'                  
                   source_target_type = 'target'
                   output = output.replace('"','')
@@ -418,6 +419,7 @@ class CSVExtract:
                   rowDict["storage_type"] = storage_type
                   rowDict["source_target_type"] = source_target_type
                   rowDict["srl_no"] = srl_no
+                  rowDict["source_srl_no"] = source_srl_no
                   rowDict["operation"] = operation
                   rowDict["flow_exec_id"] = flow_exec_id
                   rowDict["job_exec_id"] = job_exec_id
@@ -458,6 +460,7 @@ class CSVExtract:
                 inputsSet = mydict['Inputs'].splitlines()
                 outputsSet = mydict['Outputs'].splitlines()
                 srl_no = 0
+                source_srl_no = 0
                 flow_exec_id +=1
                 job_exec_id +=1
                 
@@ -465,7 +468,8 @@ class CSVExtract:
                 job_path = app_name+":"+mydict["flow_name / schedule name"]+"/"+mydict['Job Name']
                 
                 for input in inputsSet:
-                  srl_no +=1                  
+                  srl_no +=1 
+                  source_srl_no+=1                 
                   operation = 'read'
                   source_target_type = 'source'
                   input = input.replace('"','')
@@ -486,7 +490,8 @@ class CSVExtract:
                   rowDict["dataset_type"] = 'file'
                   writer.writerow(rowDict)
                 for output in outputsSet:
-                  srl_no +=1                  
+                  srl_no +=1    
+                  source_srl_no +=1              
                   operation = 'read'
                   source_target_type = 'source'
                   output = output.replace('"','')
