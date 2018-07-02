@@ -81,6 +81,8 @@ class SchedulerTransform:
   def __init__(self, args, scheduler_type):
     self.logger = LoggerFactory.getLogger('jython script : ' + self.__class__.__name__)
     self.app_id = int(args[Constant.JOB_REF_ID_KEY])
+    self.db_id = int(args[Constant.APP_DB_ID_KEY])
+    self.app_name = args[Constant.APP_NAME]
     self.wh_con = zxJDBC.connect(args[Constant.WH_DB_URL_KEY],
                                  args[Constant.WH_DB_USERNAME_KEY],
                                  args[Constant.WH_DB_PASSWORD_KEY],
@@ -613,8 +615,8 @@ class SchedulerTransform:
 
     # Clear stagging table
     query = """
-             DELETE FROM stg_dict_dataset WHERE db_id = 10003
-            """
+             DELETE FROM stg_dict_dataset WHERE db_id = {db_id}
+            """.format(db_id=self.db_id)
     self.logger.debug(query)
     self.wh_cursor.execute(query)
     self.wh_con.commit()
@@ -662,7 +664,7 @@ class SchedulerTransform:
         s.source_created_time, s.source_modified_time, UNIX_TIMESTAMP(now()),
         s.wh_etl_exec_id
     from stg_dict_dataset s
-    where s.db_id = 10003
+    where s.db_id = {db_id}
     on duplicate key update
         `name`=s.name, `schema`=s.schema, schema_type=s.schema_type, `fields`=s.fields,
         properties=s.properties, `source`=s.source, location_prefix=s.location_prefix, parent_name=s.parent_name,
@@ -671,7 +673,7 @@ class SchedulerTransform:
         partition_layout_pattern_id=s.partition_layout_pattern_id, sample_partition_full_path=s.sample_partition_full_path,
         source_created_time=s.source_created_time, source_modified_time=s.source_modified_time,
         modified_time=UNIX_TIMESTAMP(now()), wh_etl_exec_id=s.wh_etl_exec_id;
-            """
+            """.format(db_id=self.db_id)
     self.logger.debug(query)
     self.wh_cursor.execute(query)
     self.wh_con.commit()

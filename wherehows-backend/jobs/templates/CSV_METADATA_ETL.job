@@ -7,6 +7,9 @@ job.timeout=600
 #job.cmd.params=
 #job.disabled=1
 job.ref.id=103
+job.db_id=10003
+job.app_name=DFPLUS
+
 
 # Jython scripts
 
