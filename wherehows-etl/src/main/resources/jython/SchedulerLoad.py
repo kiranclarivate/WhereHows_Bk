@@ -77,9 +77,9 @@ class SchedulerLoad:
 
     cmd = """
           INSERT INTO flow_job (app_id, flow_id, first_source_version, dag_version, job_id, job_name, job_path, job_type_id, job_type, ref_flow_id, pre_jobs, post_jobs,
-          is_current, is_first, is_last, created_time, modified_time, wh_etl_exec_id,AdditionalInfo)
+          is_current, is_first, is_last, created_time, modified_time, wh_etl_exec_id,additional_info)
           SELECT app_id, flow_id, source_version first_source_version, dag_version, job_id, job_name, job_path, job_type_id, job_type, ref_flow_id, pre_jobs, post_jobs,
-          'Y', is_first, is_last, unix_timestamp(NOW()) created_time, NULL, wh_etl_exec_id,AdditionalInfo
+          'Y', is_first, is_last, unix_timestamp(NOW()) created_time, NULL, wh_etl_exec_id,additional_info
           FROM stg_flow_job s
           WHERE s.app_id = {app_id} and flow_id is not null and s.job_id is not null and  dag_version is not null
           ON DUPLICATE KEY UPDATE
@@ -97,7 +97,7 @@ class SchedulerLoad:
           is_last = s.is_last,
           modified_time = unix_timestamp(NOW()),
           wh_etl_exec_id = s.wh_etl_exec_id,
-          AdditionalInfo = s.AdditionalInfo
+          additional_info = s.additional_info
           """.format(app_id=self.app_id)
     self.logger.debug(cmd)
     self.wh_cursor.execute(cmd)

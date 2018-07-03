@@ -49,7 +49,7 @@ class CSVExtract:
     
     
     flowHeaders = ["app_id", "flow_name","flow_group", "flow_path", "flow_level", "source_version", "source_created_time", "source_modified_time", "wh_etl_exec_id"]
-    jobHeaders = ["app_id", "flow_path", "source_version", "job_name", "job_path", "job_type", "wh_etl_exec_id","AdditionalInfo"]
+    jobHeaders = ["app_id", "flow_path", "source_version", "job_name", "job_path", "job_type", "wh_etl_exec_id","additional_info"]
     dagHeaders = ["app_id", "flow_path", "source_version", "source_job_path", "target_job_path", "wh_etl_exec_id"]
     ownerHeaders = ["app_id", "flow_path", "owner_id", "wh_etl_exec_id"]
     scheduleHeaders = ["app_id", "flow_path", "unit", "frequency", "cron_expression", "effective_start_time", "effective_end_time", "ref_id", "wh_etl_exec_id"]
@@ -144,7 +144,7 @@ class CSVExtract:
              	
               elif field not in( 'flow_name / schedule name','Job Name','Dependencies') and mydict["flow_name / schedule name"]:
                 jsonDict[field] = mydict[field]
-                rowDict["AdditionalInfo"] = json.dumps(jsonDict)
+                rowDict["additional_info"] = json.dumps(jsonDict)
             
             
                

@@ -25,7 +25,7 @@ class SchedulerTransform:
   _tables = {"flows": {"columns": "app_id, flow_name,flow_group, flow_path, flow_level, source_version, source_created_time, source_modified_time, wh_etl_exec_id",
                        "file": "flow.csv",
                        "table": "stg_flow"},
-             "jobs": {"columns": "app_id, flow_path, source_version, job_name, job_path, job_type, wh_etl_exec_id,AdditionalInfo",
+             "jobs": {"columns": "app_id, flow_path, source_version, job_name, job_path, job_type, wh_etl_exec_id,additional_info",
                       "file": "job.csv",
                       "table": "stg_flow_job"},
              "dags": {"columns": "app_id, flow_path, source_version, source_job_path, target_job_path, wh_etl_exec_id",
